@@ -11,18 +11,9 @@ export const commentsService = {
 	async deleteComment(id: string, authUser: null | UsersType): Promise<boolean | HttpStatusCode> {
 		const deletedComment = await commentsRepository.findCommentById(id);
 
-		if (!deletedComment) {
-			return false;
-		}
-
-		if (!authUser) {
-			return false;
-		}
-
-		if (deletedComment.userId !== authUser.id) {
-			return HttpStatusCode.FORBIDDEN;
-		}
-
+		if (!deletedComment) return false;
+		if (!authUser) return false;
+		if (deletedComment.userId !== authUser.id) return HttpStatusCode.FORBIDDEN;
 		return await commentsRepository.deleteComment(id);
 	},
 
@@ -32,18 +23,10 @@ export const commentsService = {
 		authUser: null | UsersType,
 	): Promise<boolean | HttpStatusCode> {
 		const comment = await commentsRepository.findCommentById(id);
-		if (!comment) {
-			return false;
-		}
 
-		if (!authUser) {
-			return false;
-		}
-
-		if (comment.userId !== authUser.id) {
-			return HttpStatusCode.FORBIDDEN;
-		}
-
+		if (!comment) return false;
+		if (!authUser) return false;
+		if (comment.userId !== authUser.id) return HttpStatusCode.FORBIDDEN;
 		return await commentsRepository.updateComment(id, body.content);
 	},
 };

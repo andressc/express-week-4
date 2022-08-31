@@ -6,13 +6,8 @@ export const paginationCalc = (data: PaginationTypeQuery) => {
 	let pageNumber = +PageNumber;
 	let pageSize = +PageSize;
 
-	if (!pageNumber) {
-		pageNumber = 1;
-	}
-
-	if (!pageSize) {
-		pageSize = 10;
-	}
+	if (!pageNumber) pageNumber = 1;
+	if (!pageSize) pageSize = 10;
 
 	const skip = (pageNumber - 1) * pageSize;
 	const pagesCount = Math.ceil(totalCount / pageSize);

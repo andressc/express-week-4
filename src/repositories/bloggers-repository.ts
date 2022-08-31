@@ -32,10 +32,7 @@ export const bloggersRepository = {
 			{ projection: { _id: 0 } },
 		);
 
-		if (blogger) {
-			return blogger;
-		}
-
+		if (blogger) return blogger;
 		return null;
 	},
 
@@ -57,5 +54,10 @@ export const bloggersRepository = {
 	async createBlogger(newBlogger: BloggersType): Promise<BloggersType> {
 		await bloggersCollection.insertOne({ ...newBlogger });
 		return newBlogger;
+	},
+
+	async getTotalCount(search: string): Promise<number> {
+		const searchString = search ? { name: { $regex: search.toString() } } : {};
+		return await bloggersCollection.countDocuments(searchString);
 	},
 };

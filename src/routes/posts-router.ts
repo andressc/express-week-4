@@ -1,81 +1,65 @@
 import { Request, Response, Router } from 'express';
-import { errorValidationMiddleware } from '../middlewares/error-validation-middleware';
-import { postsValidationMiddleware } from '../middlewares/posts-validation-middleware';
-import { basicAuthorizationValidationMiddleware } from '../middlewares/basic-authorization-validation-middleware';
+import { errorValidationMiddleware } from '../middlewares/validation/error-validation-middleware';
+import { postsValidationMiddleware } from '../middlewares/validation/posts-validation-middleware';
+import { basicAuthorizationMiddleware } from '../middlewares/auth/basic-authorization-middleware';
 import { postsService } from '../domain/posts-service';
-import {PaginationType, PaginationTypeQuery} from '../types/paginationType';
-import { bloggerIdValidationMiddleware } from '../middlewares/blogger-id-validation-middleware';
-import { bearerAuthorizationValidationMiddleware } from '../middlewares/bearer-authorization-validation-middleware';
-import { commentsValidationMiddleware } from '../middlewares/comments-validation-middleware';
-import {CommentsType} from "../types/commentsType";
+import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
+import { bloggerIdValidationMiddleware } from '../middlewares/validation/blogger-id-validation-middleware';
+import { bearerAuthorizationMiddleware } from '../middlewares/auth/bearer-authorization-middleware';
+import { commentsValidationMiddleware } from '../middlewares/validation/comments-validation-middleware';
+import { CommentsType } from '../types/commentsType';
+import { HttpStatusCode } from '../types/StatusCode';
 
 export const postsRouter = Router({});
 
 postsRouter.get('/', async (req: Request<{}, {}, {}, PaginationTypeQuery>, res: Response) => {
 	const posts = await postsService.findAllPosts(req.query);
-	res.send(posts);
+
+	return res.send(posts);
 });
 
 postsRouter.get(
 	'/:id/comments',
 	async (req: Request<{ id: string }, {}, {}, PaginationTypeQuery>, res: Response) => {
-		const commentsOnPost: PaginationType<CommentsType[]> | boolean = await postsService.findAllCommentsOfPost(
-			req.query,
-			req.params.id,
-		);
+		const commentsOnPost: PaginationType<CommentsType[]> | boolean =
+			await postsService.findAllCommentsOfPost(req.query, req.params.id);
 
-		if (commentsOnPost) {
-			return res.send(commentsOnPost);
-		}
-
-		return res.sendStatus(404);
+		if (commentsOnPost) return res.send(commentsOnPost);
+		return res.sendStatus(HttpStatusCode.NOT_FOUND);
 	},
 );
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
 	const post = await postsService.findPostById(req.params.id);
 
-	if (post) {
-		return res.send(post);
-	}
-
-	res.sendStatus(404);
+	if (post) return res.send(post);
+	return res.sendStatus(HttpStatusCode.NOT_FOUND);
 });
 
-postsRouter.delete(
-	'/:id',
-	basicAuthorizationValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const isDeleted = await postsService.deletePost(req.params.id);
+postsRouter.delete('/:id', basicAuthorizationMiddleware, async (req: Request, res: Response) => {
+	const isDeleted = await postsService.deletePost(req.params.id);
 
-		if (isDeleted) {
-			return res.sendStatus(204);
-		}
-
-		return res.sendStatus(404);
-	},
-);
+	if (isDeleted) return res.sendStatus(HttpStatusCode.NO_CONTENT);
+	return res.sendStatus(HttpStatusCode.NOT_FOUND);
+});
 
 postsRouter.post(
 	'/',
-	basicAuthorizationValidationMiddleware,
+	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
 	...bloggerIdValidationMiddleware,
 	errorValidationMiddleware,
 	async (req: Request, res: Response) => {
 		const newPost = await postsService.createPost(req.body);
 
-		if (newPost) {
-			return res.status(201).send(newPost);
-		}
-
-		return res.sendStatus(404);
+		if (newPost) return res.status(HttpStatusCode.CREATED).send(newPost);
+		return res.sendStatus(HttpStatusCode.NOT_FOUND);
 	},
 );
 
 postsRouter.post(
 	'/:id/comments',
-	bearerAuthorizationValidationMiddleware,
+	bearerAuthorizationMiddleware,
 	...commentsValidationMiddleware,
 	errorValidationMiddleware,
 	async (req: Request, res: Response) => {
@@ -85,27 +69,21 @@ postsRouter.post(
 			req.params.id,
 		);
 
-		if (newComment) {
-			return res.status(201).send(newComment);
-		}
-
-		return res.sendStatus(404);
+		if (newComment) return res.status(HttpStatusCode.CREATED).send(newComment);
+		return res.sendStatus(HttpStatusCode.NOT_FOUND);
 	},
 );
 
 postsRouter.put(
 	'/:id',
-	basicAuthorizationValidationMiddleware,
+	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
 	...bloggerIdValidationMiddleware,
 	errorValidationMiddleware,
 	async (req: Request, res: Response) => {
 		const isUpdated = await postsService.updatePost(req.params.id, req.body);
 
-		if (isUpdated) {
-			return res.sendStatus(204);
-		}
-
-		return res.sendStatus(404);
+		if (isUpdated) return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		return res.sendStatus(HttpStatusCode.NOT_FOUND);
 	},
 );
