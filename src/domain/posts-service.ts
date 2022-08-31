@@ -22,9 +22,7 @@ export const postsService = {
 		id: string,
 	): Promise<PaginationType<CommentsType[]> | boolean> {
 		const post = await postsService.findPostById(id);
-		if (!post) {
-			return false;
-		}
+		if (!post) return false;
 
 		return commentsRepository.findAllComments(query, id);
 	},
@@ -39,9 +37,7 @@ export const postsService = {
 
 	async updatePost(id: string, body: PostsType): Promise<boolean> {
 		const blogger = await bloggersService.findBloggerById(body.bloggerId);
-		if (!blogger) {
-			return false;
-		}
+		if (!blogger) return false;
 
 		return await postsRepository.updatePost(id, {
 			id, //подумать
@@ -52,9 +48,7 @@ export const postsService = {
 
 	async createPost(body: PostsType): Promise<PostsType | null> {
 		const blogger = await bloggersService.findBloggerById(body.bloggerId);
-		if (!blogger) {
-			return null;
-		}
+		if (!blogger) return null;
 
 		return await postsRepository.createPost({
 			id: idCreator(),
@@ -64,25 +58,19 @@ export const postsService = {
 	},
 
 	async createCommentPost(content: string, authUser: null | UsersType, postId: string) {
-		if (!authUser) {
-			return null;
-		}
+		if (!authUser) return null;
 
 		const user = await usersService.findUserById(authUser.id);
-		if (!user) {
-			return null;
-		}
+		if (!user) return null;
 
 		const post = await postsService.findPostById(postId);
-		if (!post) {
-			return null;
-		}
+		if (!post) return null;
 
 		const newComment: CommentsType = {
 			id: idCreator(),
 			content,
 			userId: user.id,
-			userLogin: user.login,
+			userLogin: user.accountData.login,
 			postId: post.id,
 			addedAt: new Date().toISOString(),
 		};

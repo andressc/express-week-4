@@ -8,6 +8,7 @@ import { testingRouter } from './routes/testing-router';
 import { usersRouter } from './routes/users-router';
 import { authRouter } from './routes/auth-router';
 import { commentsRouter } from './routes/comments-router';
+import { emailRouter } from './routes/email-router';
 
 config();
 export const app = express();
@@ -26,6 +27,7 @@ app.use('/users', usersRouter);
 app.use('/testing', testingRouter);
 app.use('/auth', authRouter);
 app.use('/comments', commentsRouter);
+app.use('/email', emailRouter);
 
 const startApp = async () => {
 	await runDb();

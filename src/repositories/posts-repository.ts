@@ -35,10 +35,7 @@ export const postsRepository = {
 			{ projection: { _id: 0 } },
 		);
 
-		if (post) {
-			return post;
-		}
-
+		if (post) return post;
 		return null;
 	},
 

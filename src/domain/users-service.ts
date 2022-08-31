@@ -3,6 +3,7 @@ import { usersRepository } from '../repositories/users-repository';
 import bcrypt from 'bcrypt';
 import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { UsersType } from '../types/usersType';
+import { generateHash } from '../helpers/generateHash';
 
 export const usersService = {
 	async findAllUsers(query: PaginationTypeQuery): Promise<PaginationType<UsersType[]>> {
@@ -13,42 +14,34 @@ export const usersService = {
 		return usersRepository.findUserById(id);
 	},
 
-	async createUser(login: string, password: string): Promise<{ id: string; login: string } | null> {
+	async createUser(
+		login: string,
+		email: string,
+		password: string,
+	): Promise<{ id: string; login: string } | null> {
+		const isUserExists = await usersRepository.isUserExists(email, login);
+		if (isUserExists) return null;
+
 		const passwordSalt = await bcrypt.genSalt(10);
-		const passwordHash = await this._generateHash(password, passwordSalt);
+		const passwordHash = await generateHash(password, passwordSalt);
 
 		const newUser = {
 			id: idCreator(),
-			login,
-			passwordHash,
+			accountData: {
+				login,
+				email,
+				passwordHash,
+			},
+			emailConfirmation: {
+				confirmationCode: '',
+				expirationDate: new Date(),
+				isConfirmed: true,
+			},
 		};
 		return await usersRepository.createUser(newUser);
 	},
 
 	async deleteUser(id: string): Promise<boolean> {
 		return await usersRepository.deleteUser(id);
-	},
-
-	async checkCredentials(login: string, password: string): Promise<UsersType | null> {
-		const user = await usersRepository.findByLogin(login);
-		if (!user) {
-			return null;
-		}
-
-		const passwordHashSalt = user.passwordHash.split('$');
-		const passwordSalt = `$${passwordHashSalt[1]}$${
-			passwordHashSalt[2]
-		}$${passwordHashSalt[3].slice(0, 22)}`;
-		const passwordHash = await this._generateHash(password, passwordSalt);
-
-		if (user.passwordHash !== passwordHash) {
-			return null;
-		}
-
-		return user;
-	},
-
-	async _generateHash(password: string, salt: string) {
-		return await bcrypt.hash(password, salt);
 	},
 };

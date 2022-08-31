@@ -38,10 +38,8 @@ export const bloggersService = {
 
 	async createBloggerPost(id: string, body: PostsType): Promise<PostsType | null> {
 		const blogger = await bloggersService.findBloggerById(id);
-		if (!blogger) {
-			return null;
-		}
 
+		if (!blogger) return null;
 		return await postsRepository.createPost({
 			id: idCreator(),
 			...postBodyFilter(body),

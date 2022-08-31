@@ -1,7 +1,7 @@
-import {commentsCollection} from '../db/db';
+import { commentsCollection } from '../db/db';
 import { CommentsType } from '../types/commentsType';
-import {PaginationType, PaginationTypeQuery} from "../types/paginationType";
-import {paginationCalc} from "../helpers/paginationCalc";
+import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
+import { paginationCalc } from '../helpers/paginationCalc';
 
 export const commentsRepository = {
 	async findAllComments(
@@ -35,15 +35,17 @@ export const commentsRepository = {
 			{ projection: { _id: 0, postId: 0 } },
 		);
 
-		if (comment) {
-			return comment;
-		}
-
+		if (comment) return comment;
 		return null;
 	},
 
 	async deleteComment(id: string): Promise<boolean> {
 		const result = await commentsCollection.deleteOne({ id });
+		return result.deletedCount === 1;
+	},
+
+	async deleteAllComments(): Promise<boolean> {
+		const result = await commentsCollection.deleteMany({});
 		return result.deletedCount === 1;
 	},
 
