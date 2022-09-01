@@ -41,7 +41,7 @@ authRouter.post(
 
 		if (isRegister)
 			return res
-				.status(HttpStatusCode.NO_CONTENT)
+				//.status(HttpStatusCode.NO_CONTENT)
 				.send('Email with confirmation code will be send to passed email address');
 		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
 	},
@@ -71,7 +71,7 @@ authRouter.post(
 
 		if (isSend)
 			return res
-				.status(HttpStatusCode.NO_CONTENT)
+				//.status(HttpStatusCode.NO_CONTENT)
 				.send('Email with confirmation code will be send to passed email address');
 		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
 	},
