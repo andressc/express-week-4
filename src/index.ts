@@ -12,6 +12,7 @@ import { emailRouter } from './routes/email-router';
 
 config();
 export const app = express();
+app.set('trust proxy', true)
 
 const port = process.env.PORT || 3000;
 
