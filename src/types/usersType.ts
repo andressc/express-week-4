@@ -1,10 +1,10 @@
-export type accountData = {
+export type AccountData = {
 	login: string;
 	email: string;
 	passwordHash: string;
 };
 
-export type emailConfirmation = {
+export type EmailConfirmation = {
 	confirmationCode: string;
 	expirationDate: Date;
 	isConfirmed: boolean;
@@ -12,6 +12,6 @@ export type emailConfirmation = {
 
 export type UsersType = {
 	id: string;
-	emailConfirmation: emailConfirmation;
-	accountData: accountData;
+	emailConfirmation: EmailConfirmation;
+	accountData: AccountData;
 };

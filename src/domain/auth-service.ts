@@ -2,17 +2,16 @@ import { idCreator } from '../helpers/idCreator';
 import { usersRepository } from '../repositories/users-repository';
 import bcrypt from 'bcrypt';
 import { generateHash } from '../helpers/generateHash';
-import { v4 as uuidv4 } from 'uuid';
-import add from 'date-fns/add';
 import { emailManager } from '../managers/email-manager';
 import { jwtService } from '../application/jwt-service';
+import {generateConfirmationCode} from "../helpers/generateConfirmationCode";
 
 export const authService = {
 	async registration(login: string, email: string, password: string): Promise<boolean> {
 		const passwordSalt = await bcrypt.genSalt(10);
 		const passwordHash = await generateHash(password, passwordSalt);
 
-		const confirmationCode = uuidv4();
+		const emailConfirmation = generateConfirmationCode(false);
 
 		const newUser = {
 			id: idCreator(),
@@ -21,21 +20,14 @@ export const authService = {
 				email,
 				passwordHash,
 			},
-			emailConfirmation: {
-				confirmationCode,
-				expirationDate: add(new Date(), {
-					hours: 1,
-					minutes: 30,
-				}),
-				isConfirmed: false,
-			},
+			emailConfirmation,
 		};
 
 		const user = await usersRepository.createUser(newUser);
 		if (!user) return false;
 
 		try {
-			await emailManager.sendEmailRegistrationMessage(email, confirmationCode);
+			await emailManager.sendEmailRegistrationMessage(email, emailConfirmation.confirmationCode);
 		} catch (e) {
 			console.log(e);
 			await usersRepository.deleteUser(user.id);
@@ -57,10 +49,13 @@ export const authService = {
 		const user = await usersRepository.findUserByEmail(email);
 		if (!user) return false;
 
+		const emailConfirmation = generateConfirmationCode(false)
+		await usersRepository.updateEmailConfirmation(email, emailConfirmation);
+
 		try {
 			await emailManager.sendEmailRegistrationMessage(
 				email,
-				user.emailConfirmation.confirmationCode,
+				emailConfirmation.confirmationCode,
 			);
 		} catch (e) {
 			console.log(e);

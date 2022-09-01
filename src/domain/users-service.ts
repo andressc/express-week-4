@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { UsersType } from '../types/usersType';
 import { generateHash } from '../helpers/generateHash';
+import {generateConfirmationCode} from "../helpers/generateConfirmationCode";
 
 export const usersService = {
 	async findAllUsers(query: PaginationTypeQuery): Promise<PaginationType<UsersType[]>> {
@@ -29,11 +30,7 @@ export const usersService = {
 				email,
 				passwordHash,
 			},
-			emailConfirmation: {
-				confirmationCode: '',
-				expirationDate: new Date(),
-				isConfirmed: true,
-			},
+			emailConfirmation: generateConfirmationCode(true),
 		};
 		return await usersRepository.createUser(newUser);
 	},
