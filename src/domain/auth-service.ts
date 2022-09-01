@@ -73,7 +73,7 @@ export const authService = {
 		const user = await usersRepository.findUserByLogin(login);
 		if (!user) return null;
 
-		if (!user.emailConfirmation.isConfirmed) return null;
+		//if (!user.emailConfirmation.isConfirmed) return null;
 
 		const passwordHashSalt = user.accountData.passwordHash.split('$');
 		const passwordSalt = `$${passwordHashSalt[1]}$${
