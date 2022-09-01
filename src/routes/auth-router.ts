@@ -11,11 +11,13 @@ import {isUserExistsMiddleware} from "../middlewares/security/is-user-exists-mid
 import {
 	registrationResendingValidationMiddleware
 } from "../middlewares/validation/registration-resending-validation-middleware";
+import {ipMiddleware} from "../middlewares/auth/ip-middleware";
 
 export const authRouter = Router({});
 
 authRouter.post(
 	'/login',
+	ipMiddleware,
 	rateLimitMiddleware,
 	...authValidationMiddleware,
 	errorValidationMiddleware,

@@ -4,6 +4,7 @@ import { PostsType } from '../types/postsType';
 import { UsersType } from '../types/usersType';
 import { CommentsType } from '../types/commentsType';
 import { config } from 'dotenv';
+import {RemoteUserIpType} from "../types/remoteUserIpType";
 
 config();
 const mongoUri = process.env.mongoURI || 'mongodb://0.0.0.0:19017';
@@ -15,6 +16,7 @@ export const bloggersCollection = db.collection<BloggersType>('bloggers');
 export const postsCollection = db.collection<PostsType>('posts');
 export const usersCollection = db.collection<UsersType>('users');
 export const commentsCollection = db.collection<CommentsType>('comments');
+export const remoteUserIpCollection = db.collection<RemoteUserIpType>('ip');
 
 export const runDb = async () => {
 	try {

@@ -12,16 +12,15 @@ import { emailRouter } from './routes/email-router';
 
 config();
 export const app = express();
-app.set('trust proxy', true)
 
 const port = process.env.PORT || 3000;
-
+//app.set('trust proxy', true)
 //const parserMiddleware = bodyParser({});
 //app.use(parserMiddleware);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
+//app.use(ipMiddleware)
 app.use('/bloggers', bloggersRouter);
 app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
