@@ -4,7 +4,7 @@ import { PostsType } from '../types/postsType';
 import { UsersType } from '../types/usersType';
 import { CommentsType } from '../types/commentsType';
 import { config } from 'dotenv';
-import {RemoteUserIpType} from "../types/remoteUserIpType";
+import { RemoteUserIpType } from '../types/remoteUserIpType';
 
 config();
 const mongoUri = process.env.mongoURI || 'mongodb://0.0.0.0:19017';

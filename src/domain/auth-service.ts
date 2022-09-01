@@ -9,7 +9,6 @@ import { jwtService } from '../application/jwt-service';
 
 export const authService = {
 	async registration(login: string, email: string, password: string): Promise<boolean> {
-
 		const passwordSalt = await bcrypt.genSalt(10);
 		const passwordHash = await generateHash(password, passwordSalt);
 
@@ -31,6 +30,7 @@ export const authService = {
 				isConfirmed: false,
 			},
 		};
+
 		const user = await usersRepository.createUser(newUser);
 		if (!user) return false;
 

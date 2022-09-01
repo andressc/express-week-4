@@ -19,7 +19,6 @@ export const usersService = {
 		email: string,
 		password: string,
 	): Promise<{ id: string; login: string } | null> {
-
 		const passwordSalt = await bcrypt.genSalt(10);
 		const passwordHash = await generateHash(password, passwordSalt);
 

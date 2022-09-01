@@ -6,7 +6,7 @@ import { errorValidationMiddleware } from '../middlewares/validation/error-valid
 import { HttpStatusCode } from '../types/StatusCode';
 import { authValidationMiddleware } from '../middlewares/validation/auth-validation-middleware';
 import { emailValidationMiddleware } from '../middlewares/validation/email-validation-middleware';
-import {isUserExistsMiddleware} from "../middlewares/security/is-user-exists-middleware";
+import { isUserExistsMiddleware } from '../middlewares/security/is-user-exists-middleware';
 
 export const usersRouter = Router({});
 

@@ -14,7 +14,7 @@ config();
 export const app = express();
 
 const port = process.env.PORT || 3000;
-app.set('trust proxy', true)
+app.set('trust proxy', true);
 //const parserMiddleware = bodyParser({});
 //app.use(parserMiddleware);
 

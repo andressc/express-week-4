@@ -6,18 +6,14 @@ import { authService } from '../domain/auth-service';
 import { HttpStatusCode } from '../types/StatusCode';
 import { emailValidationMiddleware } from '../middlewares/validation/email-validation-middleware';
 import { registrationConfirmationValidationMiddleware } from '../middlewares/validation/registration-confirmation-validation-middleware';
-import { rateLimitMiddleware } from '../middlewares/security/rale-limit-middleware';
-import {isUserExistsMiddleware} from "../middlewares/security/is-user-exists-middleware";
-import {
-	registrationResendingValidationMiddleware
-} from "../middlewares/validation/registration-resending-validation-middleware";
-import {ipMiddleware} from "../middlewares/auth/ip-middleware";
+import { isUserExistsMiddleware } from '../middlewares/security/is-user-exists-middleware';
+import { registrationResendingValidationMiddleware } from '../middlewares/validation/registration-resending-validation-middleware';
+import { rateLimitMiddleware } from '../middlewares/security/rate-limit-middleware';
 
 export const authRouter = Router({});
 
 authRouter.post(
 	'/login',
-	ipMiddleware,
 	rateLimitMiddleware,
 	...authValidationMiddleware,
 	errorValidationMiddleware,

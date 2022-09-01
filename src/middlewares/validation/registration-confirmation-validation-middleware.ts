@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import {usersRepository} from "../../repositories/users-repository";
+import { usersRepository } from '../../repositories/users-repository';
 
 export const registrationConfirmationValidationMiddleware = [
 	body('code')
@@ -12,9 +12,9 @@ export const registrationConfirmationValidationMiddleware = [
 			const user = await usersRepository.findUserByConfirmationCode(value);
 			if (!user) throw new Error('user not found');
 			if (user.emailConfirmation.isConfirmed) throw new Error('already confirmed');
-			if (user.emailConfirmation.expirationDate < new Date()) throw new Error('confirmed code date expired');
+			if (user.emailConfirmation.expirationDate < new Date())
+				throw new Error('confirmed code date expired');
 
 			return true;
-	})
-
+		}),
 ];
