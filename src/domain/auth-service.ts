@@ -71,7 +71,9 @@ export const authService = {
 
 	async login(login: string, password: string): Promise<string | null> {
 		const user = await usersRepository.findUserByLogin(login);
-		if (!user) return null;
+		if (!user) {
+			return null;
+		}
 
 		if (!user.emailConfirmation.isConfirmed) return null;
 

@@ -1,5 +1,5 @@
-import {remoteUserIpCollection} from '../db/db';
-import {RemoteUserIpType} from '../types/remoteUserIpType';
+import { remoteUserIpCollection } from '../db/db';
+import { RemoteUserIpType } from '../types/remoteUserIpType';
 import sub from 'date-fns/sub';
 
 export const remoteUserIpRepository = {
@@ -12,7 +12,10 @@ export const remoteUserIpRepository = {
 	},
 
 	async countRemoteUserIp(ip: string): Promise<number> {
-		return await remoteUserIpCollection.count({date: {$gt: sub(new Date(), {seconds: 10})}, ip});
+		return await remoteUserIpCollection.count({
+			date: { $gt: sub(new Date(), { seconds: 10 }) },
+			ip,
+		});
 	},
 
 	async deleteRemoteUserIp(ip: string): Promise<number> {

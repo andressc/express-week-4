@@ -39,7 +39,10 @@ authRouter.post(
 			req.body.password,
 		);
 
-		if (isRegister) return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		if (isRegister)
+			return res
+				.status(HttpStatusCode.NO_CONTENT)
+				.send('Email with confirmation code will be send to passed email address');
 		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
 	},
 );
@@ -66,7 +69,10 @@ authRouter.post(
 	async (req: Request, res: Response) => {
 		const isSend = await authService.registrationEmailResending(req.body.email);
 
-		if (isSend) return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		if (isSend)
+			return res
+				.status(HttpStatusCode.NO_CONTENT)
+				.send('Email with confirmation code will be send to passed email address');
 		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
 	},
 );
