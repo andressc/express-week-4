@@ -5,7 +5,7 @@ export const emailManager = {
 		return emailAdapter.sendEmail(
 			email,
 			'Confirm email',
-			`<a href="https://some-front.com/confirm-registration?code=${confirmationCode}">Click on confirm email</a>`,
+			`https://somesite.com/confirm-email?code=${confirmationCode}`,
 		);
 	},
 };
