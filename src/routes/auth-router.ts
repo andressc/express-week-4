@@ -7,6 +7,10 @@ import { HttpStatusCode } from '../types/StatusCode';
 import { emailValidationMiddleware } from '../middlewares/validation/email-validation-middleware';
 import { registrationConfirmationValidationMiddleware } from '../middlewares/validation/registration-confirmation-validation-middleware';
 import { rateLimitMiddleware } from '../middlewares/security/rale-limit-middleware';
+import {isUserExistsMiddleware} from "../middlewares/security/is-user-exists-middleware";
+import {
+	registrationResendingValidationMiddleware
+} from "../middlewares/validation/registration-resending-validation-middleware";
 
 export const authRouter = Router({});
 
@@ -28,6 +32,7 @@ authRouter.post(
 	rateLimitMiddleware,
 	...authValidationMiddleware,
 	...emailValidationMiddleware,
+	...isUserExistsMiddleware,
 	errorValidationMiddleware,
 	async (req: Request, res: Response) => {
 		const isRegister = await authService.registration(
@@ -37,7 +42,7 @@ authRouter.post(
 		);
 
 		if (isRegister) return res.sendStatus(HttpStatusCode.NO_CONTENT);
-		return res.sendStatus(HttpStatusCode.NOT_FOUND);
+		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
 	},
 );
 
@@ -58,6 +63,7 @@ authRouter.post(
 	'/registration-email-resending',
 	rateLimitMiddleware,
 	...emailValidationMiddleware,
+	...registrationResendingValidationMiddleware,
 	errorValidationMiddleware,
 	async (req: Request, res: Response) => {
 		const isSend = await authService.registrationEmailResending(req.body.email);

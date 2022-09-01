@@ -9,8 +9,6 @@ import { jwtService } from '../application/jwt-service';
 
 export const authService = {
 	async registration(login: string, email: string, password: string): Promise<boolean> {
-		const isUserExists = await usersRepository.isUserExists(email, login);
-		if (isUserExists) return false;
 
 		const passwordSalt = await bcrypt.genSalt(10);
 		const passwordHash = await generateHash(password, passwordSalt);
@@ -50,8 +48,6 @@ export const authService = {
 	async registrationConfirmation(code: string): Promise<boolean> {
 		const user = await usersRepository.findUserByConfirmationCode(code);
 		if (!user) return false;
-		if (user.emailConfirmation.isConfirmed) return false;
-		if (user.emailConfirmation.expirationDate < new Date()) return false;
 
 		await usersRepository.updateIsConfirmed(user.id);
 		return true;
@@ -60,8 +56,6 @@ export const authService = {
 	async registrationEmailResending(email: string): Promise<boolean> {
 		const user = await usersRepository.findUserByEmail(email);
 		if (!user) return false;
-		if (user.emailConfirmation.isConfirmed) return false;
-		if (user.emailConfirmation.expirationDate < new Date()) return false;
 
 		try {
 			await emailManager.sendEmailRegistrationMessage(

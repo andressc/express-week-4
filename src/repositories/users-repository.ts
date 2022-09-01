@@ -55,13 +55,6 @@ export const usersRepository = {
 		return await usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
 	},
 
-	async isUserExists(email: string, login: string): Promise<boolean> {
-		const findUserByEmail = await usersCollection.findOne({ 'accountData.email': email });
-		const findUserByLogin = await usersCollection.findOne({ 'accountData.login': login });
-
-		return findUserByEmail !== null || findUserByLogin !== null;
-	},
-
 	async updateIsConfirmed(id: string): Promise<boolean> {
 		const result = await usersCollection.updateOne(
 			{ id },
