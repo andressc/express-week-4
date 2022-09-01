@@ -14,4 +14,9 @@ export const remoteUserIpRepository = {
 	async countRemoteUserIp(ip: string): Promise<number> {
 		return await remoteUserIpCollection.count({date: {$gt: sub(new Date(), {seconds: 10})}, ip});
 	},
+
+	async deleteRemoteUserIp(ip: string): Promise<number> {
+		const result = await remoteUserIpCollection.deleteMany({ ip });
+		return result.deletedCount;
+	},
 };
