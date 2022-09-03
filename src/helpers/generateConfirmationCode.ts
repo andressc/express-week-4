@@ -1,8 +1,7 @@
-import add from "date-fns/add";
-import {v4 as uuidv4} from "uuid";
+import add from 'date-fns/add';
+import { v4 as uuidv4 } from 'uuid';
 
 export const generateConfirmationCode = (isConfirmed: boolean) => {
-
 	const confirmationCode = uuidv4();
 	return {
 		confirmationCode,
@@ -11,5 +10,5 @@ export const generateConfirmationCode = (isConfirmed: boolean) => {
 			minutes: 30,
 		}),
 		isConfirmed,
-	}
+	};
 };

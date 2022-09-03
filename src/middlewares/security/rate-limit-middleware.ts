@@ -4,11 +4,11 @@ import { remoteUserIpService } from '../../domain/remote-user-ip-service';
 import { HttpStatusCode } from '../../types/StatusCode';
 
 export const rateLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-	await remoteUserIpService.createRemoteUserIp(req.ip);
+	await remoteUserIpService.createRemoteUserIp(req.ip, req.url);
 
-	const countRequests = await remoteUserIpService.countRemoteUserIp(req.ip);
+	const countRequests = await remoteUserIpService.countRemoteUserIp(req.ip, req.url);
 	if (countRequests > 5) {
-		await remoteUserIpService.deleteRemoteUserIp(req.ip);
+		//await remoteUserIpService.deleteRemoteUserIp(req.ip);
 		return res.sendStatus(HttpStatusCode.TOO_MANY_REQUESTS);
 	}
 

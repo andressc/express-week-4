@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import { generateHash } from '../helpers/generateHash';
 import { emailManager } from '../managers/email-manager';
 import { jwtService } from '../application/jwt-service';
-import {generateConfirmationCode} from "../helpers/generateConfirmationCode";
+import { generateConfirmationCode } from '../helpers/generateConfirmationCode';
 
 export const authService = {
 	async registration(login: string, email: string, password: string): Promise<boolean> {
@@ -49,14 +49,11 @@ export const authService = {
 		const user = await usersRepository.findUserByEmail(email);
 		if (!user) return false;
 
-		const emailConfirmation = generateConfirmationCode(false)
+		const emailConfirmation = generateConfirmationCode(false);
 		await usersRepository.updateEmailConfirmation(email, emailConfirmation);
 
 		try {
-			await emailManager.sendEmailRegistrationMessage(
-				email,
-				emailConfirmation.confirmationCode,
-			);
+			await emailManager.sendEmailRegistrationMessage(email, emailConfirmation.confirmationCode);
 		} catch (e) {
 			console.log(e);
 			return false;

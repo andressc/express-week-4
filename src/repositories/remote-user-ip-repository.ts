@@ -6,15 +6,16 @@ export const remoteUserIpRepository = {
 	async createRemoteUserIp(remoteUserIp: RemoteUserIpType): Promise<RemoteUserIpType> {
 		await remoteUserIpCollection.insertOne(remoteUserIp);
 
-		const { id, ip, date } = remoteUserIp;
+		const { id, ip, url, date } = remoteUserIp;
 
-		return { id, ip, date };
+		return { id, ip, url, date };
 	},
 
-	async countRemoteUserIp(ip: string): Promise<number> {
+	async countRemoteUserIp(ip: string, url: string): Promise<number> {
 		return await remoteUserIpCollection.count({
 			date: { $gt: sub(new Date(), { seconds: 10 }) },
 			ip,
+			url,
 		});
 	},
 

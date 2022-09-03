@@ -1,7 +1,7 @@
 import { usersCollection } from '../db/db';
 import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { paginationCalc } from '../helpers/paginationCalc';
-import {EmailConfirmation, UsersType} from '../types/usersType';
+import { EmailConfirmation, UsersType } from '../types/usersType';
 
 export const usersRepository = {
 	async findAllUsers(query: PaginationTypeQuery): Promise<PaginationType<UsersType[]>> {
@@ -63,7 +63,10 @@ export const usersRepository = {
 		return result.matchedCount === 1;
 	},
 
-	async updateEmailConfirmation(email: string, emailConfirmation: EmailConfirmation): Promise<boolean> {
+	async updateEmailConfirmation(
+		email: string,
+		emailConfirmation: EmailConfirmation,
+	): Promise<boolean> {
 		const result = await usersCollection.updateOne(
 			{ 'accountData.email': email },
 			{ $set: { emailConfirmation } },
