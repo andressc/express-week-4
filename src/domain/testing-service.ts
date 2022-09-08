@@ -1,14 +1,17 @@
-import { bloggersRepository } from '../repositories/bloggers-repository';
-import { postsRepository } from '../repositories/posts-repository';
-import { usersRepository } from '../repositories/users-repository';
-import { commentsRepository } from '../repositories/comments-repository';
+import {
+	bloggersRepository,
+	commentsRepository,
+	postsRepository,
+	remoteUserIpRepository,
+	usersRepository,
+} from '../index';
 
 export const testingService = {
-	async deleteAllData(): Promise<boolean> {
+	async deleteAllData(): Promise<void> {
 		await bloggersRepository.deleteAllBloggers();
 		await postsRepository.deleteAllPosts();
 		await usersRepository.deleteAllUsers();
 		await commentsRepository.deleteAllComments();
-		return true;
+		await remoteUserIpRepository.deleteAllRemoteUserIp();
 	},
 };

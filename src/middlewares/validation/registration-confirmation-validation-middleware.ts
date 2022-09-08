@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { usersRepository } from '../../repositories/users-repository';
+import { usersRepository } from '../../index';
 
 export const registrationConfirmationValidationMiddleware = [
 	body('code')

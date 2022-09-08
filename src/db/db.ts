@@ -1,8 +1,8 @@
 import { MongoClient } from 'mongodb';
-import { BloggersType } from '../types/bloggersType';
-import { PostsType } from '../types/postsType';
-import { UsersType } from '../types/usersType';
-import { CommentsType } from '../types/commentsType';
+import { BloggersTypeDb } from '../types/bloggersType';
+import { PostsTypeDb } from '../types/postsType';
+import { UsersTypeDb } from '../types/usersType';
+import { CommentsTypeDb } from '../types/commentsType';
 import { config } from 'dotenv';
 import { RemoteUserIpType } from '../types/remoteUserIpType';
 
@@ -12,10 +12,10 @@ const mongoUri = process.env.mongoURI || 'mongodb://0.0.0.0:19017';
 const client = new MongoClient(mongoUri);
 const db = client.db('learning');
 
-export const bloggersCollection = db.collection<BloggersType>('bloggers');
-export const postsCollection = db.collection<PostsType>('posts');
-export const usersCollection = db.collection<UsersType>('users');
-export const commentsCollection = db.collection<CommentsType>('comments');
+export const bloggersCollection = db.collection<BloggersTypeDb>('bloggers');
+export const postsCollection = db.collection<PostsTypeDb>('posts');
+export const usersCollection = db.collection<UsersTypeDb>('users');
+export const commentsCollection = db.collection<CommentsTypeDb>('comments');
 export const remoteUserIpCollection = db.collection<RemoteUserIpType>('ip');
 
 export const runDb = async () => {

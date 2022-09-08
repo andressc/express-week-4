@@ -8,7 +8,6 @@ export const rateLimitMiddleware = async (req: Request, res: Response, next: Nex
 
 	const countRequests = await remoteUserIpService.countRemoteUserIp(req.ip, req.url);
 	if (countRequests > 5) {
-		//await remoteUserIpService.deleteRemoteUserIp(req.ip);
 		return res.sendStatus(HttpStatusCode.TOO_MANY_REQUESTS);
 	}
 

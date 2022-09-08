@@ -1,50 +1,91 @@
-import { bloggersRepository } from '../repositories/bloggers-repository';
-import { BloggersType } from '../types/bloggersType';
-import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
-import { PostsType } from '../types/postsType';
-import { postsRepository } from '../repositories/posts-repository';
-import { idCreator } from '../helpers/idCreator';
-import { postBodyFilter } from '../helpers/postBodyFilter';
+import {BloggersType, BloggersTypeDb} from '../types/bloggersType';
+import {PaginationCalc, PaginationType, PaginationTypeQuery} from '../types/paginationType';
+import {PostsType} from '../types/postsType';
+import {idCreator} from '../helpers/idCreator';
+import {bloggersRepository} from '../index';
+import {ObjectId} from 'mongodb';
+import {paginationCalc} from '../helpers/paginationCalc';
+import {BLOGGER_NOT_FOUND, ERROR_DB} from '../errors/errorsMessages';
+import {NotFoundError} from '../errors/notFoundError';
+import {postsService} from './posts-service';
 
 export const bloggersService = {
 	async findAllBloggers(query: PaginationTypeQuery): Promise<PaginationType<BloggersType[]>> {
-		return bloggersRepository.findAllBloggers(query);
+		const searchNameTerm = query.searchNameTerm;
+
+		const totalCount: number = await bloggersRepository.getTotalCount(searchNameTerm);
+		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
+
+		const items: BloggersTypeDb[] = await bloggersRepository.findAllBloggers(
+			data.skip,
+			data.pageSize,
+			data.sortBy,
+			searchNameTerm,
+		);
+
+		const newItems: BloggersType[] = items.map((item) => {
+			const { _id, name, youtubeUrl } = item;
+			return { id: _id, name, youtubeUrl };
+		});
+
+		return {
+			pagesCount: data.pagesCount,
+			page: data.pageNumber,
+			pageSize: data.pageSize,
+			totalCount: data.totalCount,
+			items: newItems,
+		};
 	},
 
 	async findAllPostsBlogger(
 		query: PaginationTypeQuery,
-		id: string | null = null,
+		id: ObjectId | null = null,
 	): Promise<PaginationType<PostsType[]>> {
-		return postsRepository.findAllPosts(query, id);
+		return postsService.findAllPosts(query, id);
 	},
 
-	async findBloggerById(id: string): Promise<BloggersType | null> {
-		return bloggersRepository.findBloggerById(id);
+	async findBloggerById(id: ObjectId): Promise<BloggersType> {
+		const blogger: BloggersTypeDb | null = await bloggersRepository.findBloggerById(id);
+		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
+
+		const { _id, name, youtubeUrl } = blogger;
+		return { id: _id, name, youtubeUrl };
 	},
 
-	async deleteBlogger(id: string): Promise<boolean> {
-		return await bloggersRepository.deleteBlogger(id);
+	async deleteBlogger(id: ObjectId): Promise<void> {
+		const result: boolean = await bloggersRepository.deleteBlogger(id);
+		if (!result) throw new NotFoundError(BLOGGER_NOT_FOUND);
 	},
 
-	async updateBlogger(id: string, name: string, youtubeUrl: string): Promise<boolean> {
-		return await bloggersRepository.updateBlogger(id, name, youtubeUrl);
+	async updateBlogger(id: ObjectId, name: string, youtubeUrl: string): Promise<void> {
+		const blogger: BloggersType = await bloggersService.findBloggerById(id);
+
+		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
+
+		const result = await bloggersRepository.updateBlogger(id, name, youtubeUrl);
+		if (!result) throw new Error(ERROR_DB);
 	},
 
 	async createBlogger(name: string, youtubeUrl: string): Promise<BloggersType> {
-		const newBlogger = { id: idCreator(), name, youtubeUrl };
+		const newBlogger: BloggersTypeDb = { _id: idCreator(), name, youtubeUrl };
 
-		return await bloggersRepository.createBlogger(newBlogger);
+		const createdId: ObjectId | null = await bloggersRepository.createBlogger(newBlogger);
+		if (!createdId) throw new Error(ERROR_DB);
+
+		return { id: createdId, name, youtubeUrl };
 	},
 
-	async createBloggerPost(id: string, body: PostsType): Promise<PostsType | null> {
-		const blogger = await bloggersService.findBloggerById(id);
-
-		if (!blogger) return null;
-		return await postsRepository.createPost({
-			id: idCreator(),
-			...postBodyFilter(body),
-			bloggerId: blogger.id,
-			bloggerName: blogger.name,
+	async createBloggerPost(
+		id: ObjectId,
+		title: string,
+		shortDescription: string,
+		content: string,
+	): Promise<PostsType> {
+		return postsService.createPost({
+			title,
+			shortDescription,
+			content,
+			bloggerId: id,
 		});
 	},
 };

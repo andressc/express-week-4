@@ -1,63 +1,57 @@
-import { bloggersCollection } from '../db/db';
-import { BloggersType } from '../types/bloggersType';
-import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
-import { paginationCalc } from '../helpers/paginationCalc';
+import {bloggersCollection} from '../db/db';
+import {BloggersTypeDb} from '../types/bloggersType';
+import {DbRepository} from './db-repository';
+import {ObjectId} from 'mongodb';
 
-export const bloggersRepository = {
-	async findAllBloggers(query: PaginationTypeQuery): Promise<PaginationType<BloggersType[]>> {
-		const searchString = query.SearchNameTerm
-			? { name: { $regex: query.SearchNameTerm.toString() } }
-			: {};
-		const totalCount = await bloggersCollection.countDocuments(searchString);
+export class BloggersRepository extends DbRepository {
+	async findAllBloggers(
+		skip: number,
+		pageSize: number,
+		sortBy: {},
+		searchNameTerm: string | null | undefined,
+	): Promise<BloggersTypeDb[]> {
+		const searchString = searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
 
-		const {
-			pagesCount: pagesCount,
-			page,
-			pageSize,
-			skip,
-		} = paginationCalc({ ...query, totalCount });
-
-		const items: BloggersType[] = await bloggersCollection
-			.find(searchString, { projection: { _id: 0 } })
+		return bloggersCollection
+			//.find(searchString, { projection: { _id: 0 } })
+			.find(searchString)
 			.skip(skip)
 			.limit(pageSize)
+			.sort(sortBy)
 			.toArray();
+	}
 
-		return { pagesCount, page, pageSize, totalCount, items };
-	},
+	async findBloggerById(id: ObjectId): Promise<BloggersTypeDb | null> {
+		const blogger: BloggersTypeDb | null = await bloggersCollection.findOne({ _id: id });
 
-	async findBloggerById(id: string): Promise<BloggersType | null> {
-		const blogger: BloggersType | null = await bloggersCollection.findOne(
-			{ id },
-			{ projection: { _id: 0 } },
-		);
+		if (!blogger) return null;
+		return blogger;
+	}
 
-		if (blogger) return blogger;
-		return null;
-	},
-
-	async deleteBlogger(id: string): Promise<boolean> {
-		const result = await bloggersCollection.deleteOne({ id });
+	async deleteBlogger(id: ObjectId): Promise<boolean> {
+		const result = await bloggersCollection.deleteOne({ _id: id });
 		return result.deletedCount === 1;
-	},
+	}
 
 	async deleteAllBloggers(): Promise<boolean> {
 		const result = await bloggersCollection.deleteMany({});
 		return result.deletedCount === 1;
-	},
+	}
 
-	async updateBlogger(id: string, name: string, youtubeUrl: string): Promise<boolean> {
-		const result = await bloggersCollection.updateOne({ id }, { $set: { name, youtubeUrl } });
-		return result.matchedCount === 1;
-	},
+	async updateBlogger(id: ObjectId, name: string, youtubeUrl: string): Promise<boolean> {
+		const result = await bloggersCollection.updateOne({ _id: id }, { $set: { name, youtubeUrl } });
+		return result.acknowledged;
+	}
 
-	async createBlogger(newBlogger: BloggersType): Promise<BloggersType> {
-		await bloggersCollection.insertOne({ ...newBlogger });
-		return newBlogger;
-	},
+	async createBlogger(newBlogger: BloggersTypeDb): Promise<ObjectId | null> {
+		const result = await bloggersCollection.insertOne(newBlogger);
 
-	async getTotalCount(search: string): Promise<number> {
-		const searchString = search ? { name: { $regex: search.toString() } } : {};
+		if (!result.acknowledged) return null;
+		return result.insertedId;
+	}
+
+	async getTotalCount(searchNameTerm: string | null | undefined): Promise<number> {
+		const searchString = searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
 		return await bloggersCollection.countDocuments(searchString);
-	},
-};
+	}
+}

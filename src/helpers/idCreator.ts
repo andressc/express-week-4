@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
 
 export const idCreator = () => {
-	return new ObjectId().toString();
+	return new ObjectId();
 };

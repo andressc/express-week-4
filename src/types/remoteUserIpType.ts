@@ -1,5 +1,7 @@
+import { ObjectId } from 'mongodb';
+
 export type RemoteUserIpType = {
-	id: string;
+	_id: ObjectId;
 	ip: string;
 	url: string;
 	date: Date;

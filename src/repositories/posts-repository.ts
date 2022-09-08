@@ -1,61 +1,56 @@
-import { PostsType } from '../types/postsType';
-import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
-import { postsCollection } from '../db/db';
-import { paginationCalc } from '../helpers/paginationCalc';
+import {PostsType, PostsTypeDb} from '../types/postsType';
+import {bloggersCollection, postsCollection} from '../db/db';
+import {DbRepository} from './db-repository';
+import {ObjectId} from 'mongodb';
 
-export const postsRepository = {
+export class PostsRepository extends DbRepository {
 	async findAllPosts(
-		query: PaginationTypeQuery,
-		id: string | null,
-	): Promise<PaginationType<PostsType[]>> {
+		skip: number,
+		pageSize: number,
+		sortBy: {},
+		id: ObjectId | null,
+	): Promise<PostsTypeDb[]> {
 		const searchString = id ? { bloggerId: id } : {};
 
-		const totalCount = await postsCollection.countDocuments(searchString);
-
-		const { pagesCount, page, pageSize, skip } = paginationCalc({ ...query, totalCount });
-
-		const items: PostsType[] = await postsCollection
-			.find(searchString, { projection: { _id: 0 } })
+		return postsCollection
+			.find(searchString)
 			.skip(skip)
 			.limit(pageSize)
+			.sort(sortBy)
 			.toArray();
+	}
 
-		return {
-			pagesCount,
-			page,
-			pageSize,
-			totalCount,
-			items,
-		};
-	},
+	async findPostById(id: ObjectId): Promise<PostsTypeDb | null> {
+		const post: PostsTypeDb | null = await postsCollection.findOne({ _id: id });
 
-	async findPostById(id: string): Promise<PostsType | null> {
-		const post: PostsType | null = await postsCollection.findOne(
-			{ id },
-			{ projection: { _id: 0 } },
-		);
+		if (!post) return null;
+		return post;
+	}
 
-		if (post) return post;
-		return null;
-	},
-
-	async deletePost(id: string): Promise<boolean> {
-		const result = await postsCollection.deleteOne({ id });
+	async deletePost(id: ObjectId): Promise<boolean> {
+		const result = await postsCollection.deleteOne({ _id: id });
 		return result.deletedCount === 1;
-	},
+	}
 
 	async deleteAllPosts(): Promise<boolean> {
 		const result = await postsCollection.deleteMany({});
 		return result.deletedCount === 1;
-	},
+	}
 
-	async updatePost(id: string, updateData: PostsType): Promise<boolean> {
-		const result = await postsCollection.updateOne({ id }, { $set: updateData });
-		return result.matchedCount === 1;
-	},
+	async updatePost(id: ObjectId, updateData: PostsType): Promise<boolean> {
+		const result = await postsCollection.updateOne({ _id: id }, { $set: updateData });
+		return result.acknowledged;
+	}
 
-	async createPost(newPost: PostsType): Promise<PostsType | null> {
-		await postsCollection.insertOne({ ...newPost });
-		return newPost;
-	},
-};
+	async createPost(newPost: PostsTypeDb): Promise<ObjectId | null> {
+		const result = await postsCollection.insertOne(newPost);
+
+		if (!result.acknowledged) return null;
+		return result.insertedId;
+	}
+
+	async getTotalCount(id: ObjectId | null): Promise<number> {
+		const searchString = id ? { bloggerId: id } : {};
+		return await bloggersCollection.countDocuments(searchString);
+	}
+}

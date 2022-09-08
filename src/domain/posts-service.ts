@@ -1,73 +1,133 @@
-import { PostsType } from '../types/postsType';
-import { postsRepository } from '../repositories/posts-repository';
+import { PostsType, PostsTypeDb, PostsTypeReq } from '../types/postsType';
 import { bloggersService } from './bloggers-service';
 import { idCreator } from '../helpers/idCreator';
 import { postBodyFilter } from '../helpers/postBodyFilter';
-import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
+import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { UsersType } from '../types/usersType';
 import { usersService } from './users-service';
-import { CommentsType } from '../types/commentsType';
-import { commentsRepository } from '../repositories/comments-repository';
+import { CommentsType, CommentsTypeDb } from '../types/commentsType';
+import { commentsRepository, postsRepository } from '../index';
+import { ObjectId } from 'mongodb';
+import {
+	BLOGGER_NOT_FOUND,
+	ERROR_DB,
+	POST_NOT_FOUND,
+	USER_NOT_FOUND,
+} from '../errors/errorsMessages';
+import { NotFoundError } from '../errors/notFoundError';
+import { paginationCalc } from '../helpers/paginationCalc';
+import { commentsService } from './comments-service';
 
 export const postsService = {
 	async findAllPosts(
 		query: PaginationTypeQuery,
-		id: string | null = null,
+		id: ObjectId | null = null,
 	): Promise<PaginationType<PostsType[]>> {
-		return postsRepository.findAllPosts(query, id);
+		const totalCount: number = await postsRepository.getTotalCount(id);
+		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
+
+		const items: PostsTypeDb[] = await postsRepository.findAllPosts(
+			data.skip,
+			data.pageSize,
+			data.sortBy,
+			id,
+		);
+
+		const newItems: PostsType[] = items.map((item) => {
+			const { _id, content, bloggerId, bloggerName, shortDescription, title } = item;
+			return { id: _id, content, bloggerId, bloggerName, shortDescription, title };
+		});
+
+		return {
+			pagesCount: data.pagesCount,
+			page: data.pageNumber,
+			pageSize: data.pageSize,
+			totalCount: data.totalCount,
+			items: newItems,
+		};
 	},
 
 	async findAllCommentsOfPost(
+		id: ObjectId,
 		query: PaginationTypeQuery,
-		id: string,
-	): Promise<PaginationType<CommentsType[]> | boolean> {
+	): Promise<PaginationType<CommentsType[]>> {
 		const post = await postsService.findPostById(id);
-		if (!post) return false;
+		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		return commentsRepository.findAllComments(query, id);
+		return commentsService.findAllComments(query, id);
 	},
 
-	async findPostById(id: string): Promise<PostsType | null> {
-		return postsRepository.findPostById(id);
+	async findPostById(id: ObjectId): Promise<PostsType> {
+		const post: PostsTypeDb | null = await postsRepository.findPostById(id);
+		if (!post) throw new NotFoundError(POST_NOT_FOUND);
+
+		const { _id, content, bloggerId, bloggerName, shortDescription, title } = post;
+		return { id: _id, content, bloggerId, bloggerName, shortDescription, title };
 	},
 
-	async deletePost(id: string): Promise<boolean> {
-		return await postsRepository.deletePost(id);
+	async deletePost(id: ObjectId): Promise<void> {
+		const result: boolean = await postsRepository.deletePost(id);
+		if (!result) throw new NotFoundError(POST_NOT_FOUND);
 	},
 
-	async updatePost(id: string, body: PostsType): Promise<boolean> {
+	async updatePost(id: ObjectId, body: PostsType): Promise<void> {
 		const blogger = await bloggersService.findBloggerById(body.bloggerId);
-		if (!blogger) return false;
+		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
-		return await postsRepository.updatePost(id, {
-			id, //подумать
+		const result = await postsRepository.updatePost(id, {
+			id,
 			...postBodyFilter(body),
 			bloggerName: blogger.name,
 		});
+		if (!result) throw new Error(ERROR_DB);
 	},
 
-	async createPost(body: PostsType): Promise<PostsType | null> {
-		const blogger = await bloggersService.findBloggerById(body.bloggerId);
-		if (!blogger) return null;
+	async createPost({
+		title,
+		shortDescription,
+		content,
+		bloggerId,
+	}: PostsTypeReq): Promise<PostsType> {
+		const blogger = await bloggersService.findBloggerById(bloggerId);
+		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
-		return await postsRepository.createPost({
-			id: idCreator(),
-			...postBodyFilter(body),
+		const newPost: PostsTypeDb = {
+			_id: idCreator(),
+			title,
+			shortDescription,
+			content,
+			bloggerId,
 			bloggerName: blogger.name,
-		});
+		};
+
+		const createdId: ObjectId | null = await postsRepository.createPost(newPost);
+		if (!createdId) throw new Error(ERROR_DB);
+
+		return {
+			id: createdId,
+			title,
+			shortDescription,
+			content,
+			bloggerId,
+			bloggerName: blogger.name,
+		};
 	},
 
-	async createCommentPost(content: string, authUser: null | UsersType, postId: string) {
-		if (!authUser) return null;
+	async createCommentPost(
+		content: string,
+		authUser: null | UsersType,
+		postId: ObjectId,
+	): Promise<CommentsType> {
+		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
 
-		const user = await usersService.findUserById(authUser.id);
-		if (!user) return null;
+		const user: UsersType = await usersService.findUserById(authUser.id);
+		if (!user) throw new NotFoundError(USER_NOT_FOUND);
 
-		const post = await postsService.findPostById(postId);
-		if (!post) return null;
+		const post: PostsType = await postsService.findPostById(postId);
+		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const newComment: CommentsType = {
-			id: idCreator(),
+		const newComment: CommentsTypeDb = {
+			_id: idCreator(),
 			content,
 			userId: user.id,
 			userLogin: user.accountData.login,
@@ -75,6 +135,15 @@ export const postsService = {
 			addedAt: new Date().toISOString(),
 		};
 
-		return await commentsRepository.createComment(newComment);
+		const createdId: ObjectId | null = await commentsRepository.createComment(newComment);
+		if (!createdId) throw new Error(ERROR_DB);
+
+		return {
+			id: createdId,
+			content,
+			userId: user.id,
+			userLogin: user.accountData.login,
+			addedAt: new Date().toISOString(),
+		};
 	},
 };

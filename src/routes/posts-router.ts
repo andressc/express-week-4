@@ -9,51 +9,87 @@ import { bearerAuthorizationMiddleware } from '../middlewares/auth/bearer-author
 import { commentsValidationMiddleware } from '../middlewares/validation/comments-validation-middleware';
 import { CommentsType } from '../types/commentsType';
 import { HttpStatusCode } from '../types/StatusCode';
+import { objectIdValidationMiddleware } from '../middlewares/validation/object-id-validation-middleware';
+import { stringToObjectId } from '../helpers/stringToObjectId';
+import { generateErrorCode } from '../helpers/generateErrorCode';
+import { PostsType, PostsTypeReq } from '../types/postsType';
 
 export const postsRouter = Router({});
 
 postsRouter.get('/', async (req: Request<{}, {}, {}, PaginationTypeQuery>, res: Response) => {
-	const posts = await postsService.findAllPosts(req.query);
-
-	return res.send(posts);
+	try {
+		const posts: PaginationType<PostsType[]> = await postsService.findAllPosts(req.query);
+		return res.send(posts);
+	} catch (error) {
+		const err = generateErrorCode(error);
+		return res.status(err.status).send(err.message);
+	}
 });
 
 postsRouter.get(
 	'/:id/comments',
+	//objectIdValidationMiddleware,
 	async (req: Request<{ id: string }, {}, {}, PaginationTypeQuery>, res: Response) => {
-		const commentsOnPost: PaginationType<CommentsType[]> | boolean =
-			await postsService.findAllCommentsOfPost(req.query, req.params.id);
+		try {
+			const posts: PaginationType<CommentsType[]> = await postsService.findAllCommentsOfPost(
+				stringToObjectId(req.params.id),
+				req.query,
+			);
 
-		if (commentsOnPost) return res.send(commentsOnPost);
-		return res.sendStatus(HttpStatusCode.NOT_FOUND);
+			return res.send(posts);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
-postsRouter.get('/:id', async (req: Request, res: Response) => {
-	const post = await postsService.findPostById(req.params.id);
+postsRouter.get(
+	'/:id',
+	objectIdValidationMiddleware,
+	async (req: Request<{ id: string }, {}, {}, {}>, res: Response) => {
+		try {
+			const post: PostsType = await postsService.findPostById(stringToObjectId(req.params.id));
 
-	if (post) return res.send(post);
-	return res.sendStatus(HttpStatusCode.NOT_FOUND);
-});
+			return res.send(post);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
+	},
+);
 
-postsRouter.delete('/:id', basicAuthorizationMiddleware, async (req: Request, res: Response) => {
-	const isDeleted = await postsService.deletePost(req.params.id);
-
-	if (isDeleted) return res.sendStatus(HttpStatusCode.NO_CONTENT);
-	return res.sendStatus(HttpStatusCode.NOT_FOUND);
-});
+postsRouter.delete(
+	'/:id',
+	basicAuthorizationMiddleware,
+	objectIdValidationMiddleware,
+	async (req: Request<{ id: string }, {}, {}, {}>, res: Response) => {
+		try {
+			await postsService.deletePost(stringToObjectId(req.params.id));
+			return res.send(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
+	},
+);
 
 postsRouter.post(
 	'/',
 	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
 	...bloggerIdValidationMiddleware,
+	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const newPost = await postsService.createPost(req.body);
+	async (req: Request<{}, {}, PostsTypeReq, {}>, res: Response) => {
+		try {
+			const post: PostsType = await postsService.createPost(req.body);
 
-		if (newPost) return res.status(HttpStatusCode.CREATED).send(newPost);
-		return res.sendStatus(HttpStatusCode.NOT_FOUND);
+			return res.status(HttpStatusCode.CREATED).send(post);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
@@ -61,16 +97,21 @@ postsRouter.post(
 	'/:id/comments',
 	bearerAuthorizationMiddleware,
 	...commentsValidationMiddleware,
+	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const newComment = await postsService.createCommentPost(
-			req.body.content,
-			req!.user,
-			req.params.id,
-		);
+	async (req: Request<{ id: string }, {}, { content: string }, {}>, res: Response) => {
+		try {
+			const comment: CommentsType = await postsService.createCommentPost(
+				req.body.content,
+				req.user,
+				stringToObjectId(req.params.id),
+			);
 
-		if (newComment) return res.status(HttpStatusCode.CREATED).send(newComment);
-		return res.sendStatus(HttpStatusCode.NOT_FOUND);
+			return res.status(HttpStatusCode.CREATED).send(comment);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
@@ -79,11 +120,15 @@ postsRouter.put(
 	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
 	...bloggerIdValidationMiddleware,
+	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const isUpdated = await postsService.updatePost(req.params.id, req.body);
-
-		if (isUpdated) return res.sendStatus(HttpStatusCode.NO_CONTENT);
-		return res.sendStatus(HttpStatusCode.NOT_FOUND);
+	async (req: Request<{ id: string }, {}, PostsType, {}>, res: Response) => {
+		try {
+			await postsService.updatePost(stringToObjectId(req.params.id), req.body);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );

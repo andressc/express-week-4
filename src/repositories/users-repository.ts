@@ -1,67 +1,44 @@
-import { usersCollection } from '../db/db';
-import { PaginationType, PaginationTypeQuery } from '../types/paginationType';
-import { paginationCalc } from '../helpers/paginationCalc';
-import { EmailConfirmation, UsersType } from '../types/usersType';
+import {bloggersCollection, usersCollection} from '../db/db';
+import {EmailConfirmation, UsersTypeDb} from '../types/usersType';
+import {DbRepository} from './db-repository';
+import {ObjectId} from 'mongodb';
 
-export const usersRepository = {
-	async findAllUsers(query: PaginationTypeQuery): Promise<PaginationType<UsersType[]>> {
-		const totalCount = await usersCollection.countDocuments({});
-
-		const {
-			pagesCount: pagesCount,
-			page,
-			pageSize,
-			skip,
-		} = paginationCalc({ ...query, totalCount });
-
-		const items: UsersType[] = await usersCollection
-			.find(
-				{},
-				{
-					projection: {
-						_id: 0,
-						'accountData.passwordHash': 0,
-						'accountData.email': 0,
-						emailConfirmation: 0,
-					},
-				},
-			)
+export class UsersRepository extends DbRepository {
+	async findAllUsers(skip: number, pageSize: number, sortBy: {}): Promise<UsersTypeDb[]> {
+		return usersCollection
+			.find({})
 			.skip(skip)
 			.limit(pageSize)
+			.sort(sortBy)
 			.toArray();
+	}
 
-		return { pagesCount, page, pageSize, totalCount, items };
-	},
+	async findUserById(id: ObjectId): Promise<UsersTypeDb | null> {
+		const user: UsersTypeDb | null = await usersCollection.findOne({ _id: id });
 
-	async findUserById(id: string): Promise<UsersType | null> {
-		const user: UsersType | null = await usersCollection.findOne(
-			{ id },
-			{ projection: { _id: 0 } },
-		);
+		if (!user) return null;
+		return user;
+	}
 
-		if (user) return user;
-		return null;
-	},
-
-	async findUserByLogin(login: string): Promise<UsersType | null> {
+	async findUserByLogin(login: string): Promise<UsersTypeDb | null> {
 		return await usersCollection.findOne({ 'accountData.login': login });
-	},
+	}
 
-	async findUserByEmail(email: string): Promise<UsersType | null> {
+	async findUserByEmail(email: string): Promise<UsersTypeDb | null> {
 		return await usersCollection.findOne({ 'accountData.email': email });
-	},
+	}
 
-	async findUserByConfirmationCode(code: string): Promise<UsersType | null> {
+	async findUserByConfirmationCode(code: string): Promise<UsersTypeDb | null> {
 		return await usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
-	},
+	}
 
-	async updateIsConfirmed(id: string): Promise<boolean> {
+	async updateIsConfirmed(id: ObjectId): Promise<boolean> {
 		const result = await usersCollection.updateOne(
-			{ id },
+			{ _id: id },
 			{ $set: { 'emailConfirmation.isConfirmed': true } },
 		);
 		return result.matchedCount === 1;
-	},
+	}
 
 	async updateEmailConfirmation(
 		email: string,
@@ -72,26 +49,26 @@ export const usersRepository = {
 			{ $set: { emailConfirmation } },
 		);
 		return result.matchedCount === 1;
-	},
+	}
 
-	async deleteUser(id: string): Promise<boolean> {
-		const result = await usersCollection.deleteOne({ id });
+	async deleteUser(id: ObjectId): Promise<boolean> {
+		const result = await usersCollection.deleteOne({ _id: id });
 		return result.deletedCount === 1;
-	},
+	}
 
 	async deleteAllUsers(): Promise<boolean> {
 		const result = await usersCollection.deleteMany({});
 		return result.deletedCount === 1;
-	},
+	}
 
-	async createUser(newUser: UsersType): Promise<{ id: string; login: string }> {
-		await usersCollection.insertOne({ ...newUser });
+	async createUser(newUser: UsersTypeDb): Promise<ObjectId | null> {
+		const result = await usersCollection.insertOne(newUser);
 
-		const {
-			id,
-			accountData: { login },
-		} = newUser;
+		if (!result.acknowledged) return null;
+		return result.insertedId;
+	}
 
-		return { id, login };
-	},
-};
+	async getTotalCount(): Promise<number> {
+		return await bloggersCollection.countDocuments({});
+	}
+}

@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { usersRepository } from '../../repositories/users-repository';
+import { usersRepository } from '../../index';
 
 export const isUserExistsMiddleware = [
 	body('email').custom(async (value) => {

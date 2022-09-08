@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb';
+
 export type AccountData = {
 	login: string;
 	email: string;
@@ -11,7 +13,13 @@ export type EmailConfirmation = {
 };
 
 export type UsersType = {
-	id: string;
+	id: ObjectId;
+	emailConfirmation: EmailConfirmation;
+	accountData: AccountData;
+};
+
+export type UsersTypeDb = {
+	_id: ObjectId;
 	emailConfirmation: EmailConfirmation;
 	accountData: AccountData;
 };

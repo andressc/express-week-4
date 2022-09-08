@@ -5,38 +5,61 @@ import { commentsValidationMiddleware } from '../middlewares/validation/comments
 import { bearerAuthorizationMiddleware } from '../middlewares/auth/bearer-authorization-middleware';
 import { CommentsType } from '../types/commentsType';
 import { HttpStatusCode } from '../types/StatusCode';
+import { objectIdValidationMiddleware } from '../middlewares/validation/object-id-validation-middleware';
+import { stringToObjectId } from '../helpers/stringToObjectId';
+import { generateErrorCode } from '../helpers/generateErrorCode';
 
 export const commentsRouter = Router({});
 
-commentsRouter.get('/:id', async (req: Request, res: Response) => {
-	const comment = await commentsService.findCommentById(req.params.id);
+commentsRouter.get(
+	'/:id',
+	objectIdValidationMiddleware,
+	async (req: Request<{ id: string }, {}, {}, {}>, res: Response) => {
+		try {
+			const comment: CommentsType = await commentsService.findCommentById(
+				stringToObjectId(req.params.id),
+			);
 
-	if (comment) return res.send(comment);
-	return res.sendStatus(HttpStatusCode.NOT_FOUND);
-});
+			return res.send(comment);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
+	},
+);
 
 commentsRouter.put(
 	'/:id',
 	bearerAuthorizationMiddleware,
 	...commentsValidationMiddleware,
+	objectIdValidationMiddleware,
 	errorValidationMiddleware,
 	async (req: Request<{ id: string }, {}, CommentsType, {}>, res: Response) => {
-		const isUpdated = await commentsService.updateComment(req.params.id, req.body, req!.user);
-
-		if (isUpdated === HttpStatusCode.FORBIDDEN) return res.sendStatus(HttpStatusCode.FORBIDDEN);
-		if (isUpdated) return res.sendStatus(HttpStatusCode.NO_CONTENT);
-		return res.sendStatus(HttpStatusCode.NOT_FOUND);
+		try {
+			await commentsService.updateComment(
+				stringToObjectId(req.params.id),
+				req.body.content,
+				req.user,
+			);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
 commentsRouter.delete(
 	'/:id',
 	bearerAuthorizationMiddleware,
-	async (req: Request, res: Response) => {
-		const isDeleted = await commentsService.deleteComment(req.params.id, req!.user);
-
-		if (isDeleted === HttpStatusCode.FORBIDDEN) return res.sendStatus(HttpStatusCode.FORBIDDEN);
-		if (isDeleted) return res.sendStatus(HttpStatusCode.NO_CONTENT);
-		return res.sendStatus(HttpStatusCode.NOT_FOUND);
+	objectIdValidationMiddleware,
+	async (req: Request<{ id: string }, {}, {}, {}>, res: Response) => {
+		try {
+			await commentsService.deleteComment(stringToObjectId(req.params.id), req.user);
+			return res.send(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );

@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express';
-import { jwtService } from '../application/jwt-service';
 import { authValidationMiddleware } from '../middlewares/validation/auth-validation-middleware';
 import { errorValidationMiddleware } from '../middlewares/validation/error-validation-middleware';
 import { authService } from '../domain/auth-service';
@@ -9,6 +8,7 @@ import { registrationConfirmationValidationMiddleware } from '../middlewares/val
 import { isUserExistsMiddleware } from '../middlewares/security/is-user-exists-middleware';
 import { registrationResendingValidationMiddleware } from '../middlewares/validation/registration-resending-validation-middleware';
 import { rateLimitMiddleware } from '../middlewares/security/rate-limit-middleware';
+import { generateErrorCode } from '../helpers/generateErrorCode';
 
 export const authRouter = Router({});
 
@@ -17,11 +17,14 @@ authRouter.post(
 	rateLimitMiddleware,
 	...authValidationMiddleware,
 	errorValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const token = await authService.login(req.body.login, req.body.password);
-
-		if (token) return res.status(HttpStatusCode.OK).send({ token });
-		return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
+	async (req: Request<{}, {}, { login: string; password: string }, {}>, res: Response) => {
+		try {
+			const token: { token: string } = await authService.login(req.body.login, req.body.password);
+			return res.send(token);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
@@ -32,18 +35,17 @@ authRouter.post(
 	...emailValidationMiddleware,
 	...isUserExistsMiddleware,
 	errorValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const isRegister = await authService.registration(
-			req.body.login,
-			req.body.email,
-			req.body.password,
-		);
-
-		if (isRegister)
-			return res
-				.status(HttpStatusCode.NO_CONTENT)
-				.send('Email with confirmation code will be send to passed email address');
-		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
+	async (
+		req: Request<{}, {}, { login: string; email: string; password: string }, {}>,
+		res: Response,
+	) => {
+		try {
+			await authService.registration(req.body.login, req.body.email, req.body.password);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
@@ -52,11 +54,14 @@ authRouter.post(
 	rateLimitMiddleware,
 	...registrationConfirmationValidationMiddleware,
 	errorValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const isConfirm = await authService.registrationConfirmation(req.body.code);
-
-		if (isConfirm) return res.sendStatus(HttpStatusCode.NO_CONTENT);
-		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
+	async (req: Request<{}, {}, { code: string }, {}>, res: Response) => {
+		try {
+			await authService.registrationConfirmation(req.body.code);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
@@ -66,20 +71,20 @@ authRouter.post(
 	...emailValidationMiddleware,
 	...registrationResendingValidationMiddleware,
 	errorValidationMiddleware,
-	async (req: Request, res: Response) => {
-		const isSend = await authService.registrationEmailResending(req.body.email);
-
-		if (isSend)
-			return res
-				.status(HttpStatusCode.NO_CONTENT)
-				.send('Email with confirmation code will be send to passed email address');
-		return res.sendStatus(HttpStatusCode.BAD_REQUEST);
+	async (req: Request<{}, {}, { email: string }, {}>, res: Response) => {
+		try {
+			await authService.registrationEmailResending(req.body.email);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
 	},
 );
 
-authRouter.post('/test', async (req: Request, res: Response) => {
+/*authRouter.post('/test', async (req: Request, res: Response) => {
 	const test = await jwtService.getUserAuthByToken(req.body.token);
 
 	if (test) return res.send(test);
 	return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
-});
+});*/

@@ -1,16 +1,23 @@
-import { PaginationTypeQuery } from '../types/paginationType';
+import { PaginationCalc, PaginationTypeQuery } from '../types/paginationType';
 
-export const paginationCalc = (data: PaginationTypeQuery) => {
-	const { PageNumber, PageSize, totalCount } = data;
+export const paginationCalc = (query: PaginationTypeQuery): PaginationCalc => {
+	const sortDirection = query.sortDirection === 'Asc' ? 1 : -1;
+	const sortBy = query.sortBy ? { [query.sortBy]: sortDirection } : { createdAt: sortDirection };
 
-	let pageNumber = +PageNumber;
-	let pageSize = +PageSize;
+	let pageNumber = +query.pageNumber;
+	let pageSize = +query.pageSize;
+	let totalCount = +query.totalCount;
 
-	if (!pageNumber) pageNumber = 1;
-	if (!pageSize) pageSize = 10;
+	if (!pageNumber) {
+		pageNumber = 1;
+	}
+
+	if (!pageSize) {
+		pageSize = 10;
+	}
 
 	const skip = (pageNumber - 1) * pageSize;
 	const pagesCount = Math.ceil(totalCount / pageSize);
 
-	return { pagesCount, page: pageNumber, pageSize: pageSize, skip };
+	return { pagesCount, pageNumber, pageSize, skip, sortBy, totalCount };
 };
