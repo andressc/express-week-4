@@ -12,7 +12,9 @@ export class RefreshTokensRepository extends DbRepository {
 	}
 
 	async findRefreshToken(token: string): Promise<RefreshTokenType | null> {
-		const refreshToken: RefreshTokenType | null = await refreshTokensCollection.findOne({ token });
+		const refreshToken: RefreshTokenType | null = await refreshTokensCollection.findOne({
+			refreshToken: token,
+		});
 
 		if (!refreshToken) return null;
 		return refreshToken;
@@ -32,6 +34,11 @@ export class RefreshTokensRepository extends DbRepository {
 			{ $set: { refreshToken, expirationDate } },
 		);
 		return result.matchedCount === 1;
+	}
+
+	async deleteToken(refreshToken: string): Promise<boolean> {
+		const result = await refreshTokensCollection.deleteOne({ refreshToken });
+		return result.deletedCount === 1;
 	}
 
 	async deleteAllTokens(): Promise<boolean> {

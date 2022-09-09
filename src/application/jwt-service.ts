@@ -4,7 +4,7 @@ import { UsersTypeDb } from '../types/usersType';
 export const jwtService = {
 	async createJWT(user: UsersTypeDb) {
 		return jwt.sign({ userId: user._id }, '56ytuhbvcw4rhe6rtcvjuoiporeesfh', {
-			expiresIn: '1h',
+			expiresIn: '10s',
 		});
 	},
 

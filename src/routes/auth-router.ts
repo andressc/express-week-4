@@ -118,17 +118,30 @@ authRouter.post(
 	errorValidationMiddleware,
 	async (req: Request<{}, {}, {}, {}>, res: Response) => {
 		try {
-			//console.log(req.cookies)
 			const token: AuthTokenType = await authService.refreshToken(req.cookies?.refreshToken);
 
 			res.cookie('refreshToken', token.refreshToken, {
 				httpOnly: true,
 				//sameSite: 'None',
 				secure: true,
-				maxAge: 60 * 1000,
+				maxAge: 20000,
 			});
 
 			return res.send({ accessToken: token.accessToken });
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
+	},
+);
+
+authRouter.post(
+	'/logout',
+	errorValidationMiddleware,
+	async (req: Request<{}, {}, {}, {}>, res: Response) => {
+		try {
+			await authService.deleteRefreshToken(req.cookies?.refreshToken);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);

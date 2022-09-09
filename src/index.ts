@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import { bloggersRouter } from './routes/bloggers-router';
 import { postsRouter } from './routes/posts-router';
 import { runDb } from './db/db';
@@ -30,6 +31,7 @@ app.set('trust proxy', true);
 //const parserMiddleware = bodyParser({});
 //app.use(parserMiddleware);
 
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 //app.use(ipMiddleware)
