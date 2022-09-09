@@ -1,7 +1,6 @@
 import { PostsType, PostsTypeDb, PostsTypeReq } from '../types/postsType';
 import { bloggersService } from './bloggers-service';
 import { idCreator } from '../helpers/idCreator';
-import { postBodyFilter } from '../helpers/postBodyFilter';
 import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { UsersType } from '../types/usersType';
 import { usersService } from './users-service';
@@ -17,6 +16,7 @@ import {
 import { NotFoundError } from '../errors/notFoundError';
 import { paginationCalc } from '../helpers/paginationCalc';
 import { commentsService } from './comments-service';
+import { stringToObjectId } from '../helpers/stringToObjectId';
 
 export const postsService = {
 	async findAllPosts(
@@ -34,8 +34,8 @@ export const postsService = {
 		);
 
 		const newItems: PostsType[] = items.map((item) => {
-			const { _id, content, bloggerId, bloggerName, shortDescription, title } = item;
-			return { id: _id, content, bloggerId, bloggerName, shortDescription, title };
+			const { _id, title, shortDescription, content, bloggerId, bloggerName } = item;
+			return { id: _id, title, shortDescription, content, bloggerId, bloggerName };
 		});
 
 		return {
@@ -61,8 +61,8 @@ export const postsService = {
 		const post: PostsTypeDb | null = await postsRepository.findPostById(id);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const { _id, content, bloggerId, bloggerName, shortDescription, title } = post;
-		return { id: _id, content, bloggerId, bloggerName, shortDescription, title };
+		const { _id, title, shortDescription, content, bloggerId, bloggerName } = post;
+		return { id: _id, title, shortDescription, content, bloggerId, bloggerName };
 	},
 
 	async deletePost(id: ObjectId): Promise<void> {
@@ -70,24 +70,31 @@ export const postsService = {
 		if (!result) throw new NotFoundError(POST_NOT_FOUND);
 	},
 
-	async updatePost(id: ObjectId, body: PostsType): Promise<void> {
-		const blogger = await bloggersService.findBloggerById(body.bloggerId);
+	async updatePost(
+		id: ObjectId,
+		{ title, shortDescription, content, bloggerId }: PostsTypeReq,
+	): Promise<void> {
+		const bloggerIdObjectId = stringToObjectId(bloggerId);
+		const blogger = await bloggersService.findBloggerById(bloggerIdObjectId);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
 		const result = await postsRepository.updatePost(id, {
 			id,
-			...postBodyFilter(body),
+			title,
+			shortDescription,
+			content,
+			bloggerId: bloggerIdObjectId,
 			bloggerName: blogger.name,
 		});
 		if (!result) throw new Error(ERROR_DB);
 	},
 
-	async createPost({
-		title,
-		shortDescription,
-		content,
-		bloggerId,
-	}: PostsTypeReq): Promise<PostsType> {
+	async createPost(
+		title: string,
+		shortDescription: string,
+		content: string,
+		bloggerId: ObjectId,
+	): Promise<PostsType> {
 		const blogger = await bloggersService.findBloggerById(bloggerId);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 

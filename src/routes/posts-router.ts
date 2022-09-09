@@ -79,11 +79,15 @@ postsRouter.post(
 	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
 	...bloggerIdValidationMiddleware,
-	objectIdValidationMiddleware,
 	errorValidationMiddleware,
 	async (req: Request<{}, {}, PostsTypeReq, {}>, res: Response) => {
 		try {
-			const post: PostsType = await postsService.createPost(req.body);
+			const post: PostsType = await postsService.createPost(
+				req.body.title,
+				req.body.shortDescription,
+				req.body.content,
+				stringToObjectId(req.body.bloggerId),
+			);
 
 			return res.status(HttpStatusCode.CREATED).send(post);
 		} catch (error) {
@@ -122,7 +126,7 @@ postsRouter.put(
 	...bloggerIdValidationMiddleware,
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	async (req: Request<{ id: string }, {}, PostsType, {}>, res: Response) => {
+	async (req: Request<{ id: string }, {}, PostsTypeReq, {}>, res: Response) => {
 		try {
 			await postsService.updatePost(stringToObjectId(req.params.id), req.body);
 			return res.sendStatus(HttpStatusCode.NO_CONTENT);

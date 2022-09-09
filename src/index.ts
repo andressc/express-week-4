@@ -13,6 +13,7 @@ import { UsersRepository } from './repositories/users-repository';
 import { PostsRepository } from './repositories/posts-repository';
 import { CommentsRepository } from './repositories/comments-repository';
 import { RemoteUserIpRepository } from './repositories/remote-user-ip-repository';
+import { RefreshTokensRepository } from './repositories/refresh-tokens-repository';
 
 config();
 export const app = express();
@@ -22,6 +23,7 @@ export const usersRepository = new UsersRepository();
 export const postsRepository = new PostsRepository();
 export const commentsRepository = new CommentsRepository();
 export const remoteUserIpRepository = new RemoteUserIpRepository();
+export const refreshTokensRepository = new RefreshTokensRepository();
 
 const port = process.env.PORT || 3000;
 app.set('trust proxy', true);

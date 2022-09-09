@@ -2,6 +2,7 @@ import {
 	bloggersRepository,
 	commentsRepository,
 	postsRepository,
+	refreshTokensRepository,
 	remoteUserIpRepository,
 	usersRepository,
 } from '../index';
@@ -13,5 +14,6 @@ export const testingService = {
 		await usersRepository.deleteAllUsers();
 		await commentsRepository.deleteAllComments();
 		await remoteUserIpRepository.deleteAllRemoteUserIp();
+		await refreshTokensRepository.deleteAllTokens();
 	},
 };

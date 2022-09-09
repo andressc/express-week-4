@@ -22,5 +22,5 @@ export type PostsTypeReq = {
 	title: string;
 	shortDescription: string;
 	content: string;
-	bloggerId: ObjectId;
+	bloggerId: string;
 };

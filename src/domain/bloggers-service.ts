@@ -1,13 +1,13 @@
-import {BloggersType, BloggersTypeDb} from '../types/bloggersType';
-import {PaginationCalc, PaginationType, PaginationTypeQuery} from '../types/paginationType';
-import {PostsType} from '../types/postsType';
-import {idCreator} from '../helpers/idCreator';
-import {bloggersRepository} from '../index';
-import {ObjectId} from 'mongodb';
-import {paginationCalc} from '../helpers/paginationCalc';
-import {BLOGGER_NOT_FOUND, ERROR_DB} from '../errors/errorsMessages';
-import {NotFoundError} from '../errors/notFoundError';
-import {postsService} from './posts-service';
+import { BloggersType, BloggersTypeDb } from '../types/bloggersType';
+import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
+import { PostsType } from '../types/postsType';
+import { idCreator } from '../helpers/idCreator';
+import { bloggersRepository } from '../index';
+import { ObjectId } from 'mongodb';
+import { paginationCalc } from '../helpers/paginationCalc';
+import { BLOGGER_NOT_FOUND, ERROR_DB } from '../errors/errorsMessages';
+import { NotFoundError } from '../errors/notFoundError';
+import { postsService } from './posts-service';
 
 export const bloggersService = {
 	async findAllBloggers(query: PaginationTypeQuery): Promise<PaginationType<BloggersType[]>> {
@@ -81,11 +81,6 @@ export const bloggersService = {
 		shortDescription: string,
 		content: string,
 	): Promise<PostsType> {
-		return postsService.createPost({
-			title,
-			shortDescription,
-			content,
-			bloggerId: id,
-		});
+		return postsService.createPost(title, shortDescription, content, id);
 	},
 };

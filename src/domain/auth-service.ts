@@ -4,16 +4,23 @@ import { generateHash } from '../helpers/generateHash';
 import { emailManager } from '../managers/email-manager';
 import { jwtService } from '../application/jwt-service';
 import { generateConfirmationCode } from '../helpers/generateConfirmationCode';
-import { usersRepository } from '../index';
+import { refreshTokensRepository, usersRepository } from '../index';
 import { UnauthorizedError } from '../errors/unauthorizedError';
 import {
 	EMAIL_NOT_CONFIRMED,
 	ERROR_DB,
 	MESSAGE_NOT_SENT,
+	REFRESH_TOKEN_INCORRECT,
+	REFRESH_TOKEN_OVERDUE,
 	USER_NOT_FOUND,
 } from '../errors/errorsMessages';
 import { BadRequestError } from '../errors/badRequestError';
 import { ObjectId } from 'mongodb';
+import { NotFoundError } from '../errors/notFoundError';
+import { UsersType } from '../types/usersType';
+import { usersService } from './users-service';
+import { AuthTokenType, RefreshTokenType } from '../types/authTokenType';
+import add from 'date-fns/add';
 
 export const authService = {
 	async registration(login: string, email: string, password: string): Promise<void> {
@@ -39,7 +46,7 @@ export const authService = {
 			await emailManager.sendEmailRegistrationMessage(email, emailConfirmation.confirmationCode);
 		} catch (e) {
 			await usersRepository.deleteUser(createdId);
-			throw new BadRequestError(MESSAGE_NOT_SENT);
+			throw new BadRequestError(MESSAGE_NOT_SENT + ' ' + e);
 		}
 	},
 
@@ -66,7 +73,7 @@ export const authService = {
 		}
 	},
 
-	async login(login: string, password: string): Promise<{ token: string }> {
+	async login(login: string, password: string): Promise<AuthTokenType> {
 		const user = await usersRepository.findUserByLogin(login);
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
@@ -80,7 +87,78 @@ export const authService = {
 
 		if (user.accountData.passwordHash !== passwordHash) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		const token = await jwtService.createJWT(user);
-		return { token };
+		const refreshToken = idCreator().toString();
+		const newRefreshToken = {
+			refreshToken,
+			login: user.accountData.login,
+			expirationDate: add(new Date(), {
+				hours: 1,
+				minutes: 30,
+			}),
+		};
+
+		const isTokenExists: RefreshTokenType | null =
+			await refreshTokensRepository.findRefreshTokenByLogin(user.accountData.login);
+		if (!isTokenExists) {
+			const createdId: ObjectId | null = await refreshTokensRepository.createRefreshToken(
+				newRefreshToken,
+			);
+			if (!createdId) throw new Error(ERROR_DB);
+		}
+
+		if (isTokenExists) {
+			const isUpdate: boolean = await refreshTokensRepository.updateRefreshToken(newRefreshToken);
+			if (!isUpdate) throw new Error(ERROR_DB);
+		}
+
+		const accessToken = await jwtService.createJWT(user);
+		return { accessToken, refreshToken };
+	},
+
+	async refreshToken(token: string | null): Promise<AuthTokenType> {
+		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		const refreshToken = await refreshTokensRepository.findRefreshToken(token);
+		if (!refreshToken) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		const user = await usersRepository.findUserByLogin(refreshToken.login);
+		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
+
+		if (refreshToken.expirationDate > new Date())
+			throw new UnauthorizedError(REFRESH_TOKEN_OVERDUE);
+
+		const refreshTokenNew = idCreator().toString();
+		const newRefreshToken = {
+			refreshToken: refreshTokenNew,
+			login: user.accountData.login,
+			expirationDate: add(new Date(), {
+				hours: 1,
+				minutes: 30,
+			}),
+		};
+
+		const isUpdate: boolean = await refreshTokensRepository.updateRefreshToken(newRefreshToken);
+		if (!isUpdate) throw new Error(ERROR_DB);
+
+		const accessToken = await jwtService.createJWT(user);
+		return { accessToken, refreshToken: refreshTokenNew };
+	},
+
+	async getAuthUser(authUser: null | UsersType): Promise<{
+		email: string;
+		login: string;
+		userId: string;
+	}> {
+		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
+
+		const user: UsersType = await usersService.findUserById(authUser.id);
+		if (!user) throw new NotFoundError(USER_NOT_FOUND);
+
+		const {
+			accountData: { email, login },
+			id,
+		} = user;
+
+		return { email, login, userId: id.toString() };
 	},
 };

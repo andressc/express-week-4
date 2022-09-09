@@ -9,6 +9,8 @@ import { isUserExistsMiddleware } from '../middlewares/security/is-user-exists-m
 import { registrationResendingValidationMiddleware } from '../middlewares/validation/registration-resending-validation-middleware';
 import { rateLimitMiddleware } from '../middlewares/security/rate-limit-middleware';
 import { generateErrorCode } from '../helpers/generateErrorCode';
+import { bearerAuthorizationMiddleware } from '../middlewares/auth/bearer-authorization-middleware';
+import { AuthTokenType } from '../types/authTokenType';
 
 export const authRouter = Router({});
 
@@ -19,8 +21,16 @@ authRouter.post(
 	errorValidationMiddleware,
 	async (req: Request<{}, {}, { login: string; password: string }, {}>, res: Response) => {
 		try {
-			const token: { token: string } = await authService.login(req.body.login, req.body.password);
-			return res.send(token);
+			const token: AuthTokenType = await authService.login(req.body.login, req.body.password);
+
+			res.cookie('refreshToken', token.refreshToken, {
+				httpOnly: true,
+				//sameSite: 'None',
+				secure: true,
+				maxAge: 60 * 1000,
+			});
+
+			return res.send({ accessToken: token.accessToken });
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
@@ -75,6 +85,50 @@ authRouter.post(
 		try {
 			await authService.registrationEmailResending(req.body.email);
 			return res.sendStatus(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
+	},
+);
+
+authRouter.post(
+	'/me',
+	rateLimitMiddleware,
+	bearerAuthorizationMiddleware,
+	errorValidationMiddleware,
+	async (req: Request<{}, {}, {}, {}>, res: Response) => {
+		try {
+			const authUser: {
+				email: string;
+				login: string;
+				userId: string;
+			} = await authService.getAuthUser(req.user);
+
+			return res.send(authUser);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
+	},
+);
+
+authRouter.post(
+	'/refresh-token',
+	errorValidationMiddleware,
+	async (req: Request<{}, {}, {}, {}>, res: Response) => {
+		try {
+			//console.log(req.cookies)
+			const token: AuthTokenType = await authService.refreshToken(req.cookies?.refreshToken);
+
+			res.cookie('refreshToken', token.refreshToken, {
+				httpOnly: true,
+				//sameSite: 'None',
+				secure: true,
+				maxAge: 60 * 1000,
+			});
+
+			return res.send({ accessToken: token.accessToken });
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);

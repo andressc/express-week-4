@@ -1,7 +1,7 @@
-import {commentsCollection} from '../db/db';
-import {CommentsTypeDb} from '../types/commentsType';
-import {DbRepository} from './db-repository';
-import {ObjectId} from 'mongodb';
+import { commentsCollection } from '../db/db';
+import { CommentsTypeDb } from '../types/commentsType';
+import { DbRepository } from './db-repository';
+import { ObjectId } from 'mongodb';
 
 export class CommentsRepository extends DbRepository {
 	async findAllComments(
@@ -10,14 +10,9 @@ export class CommentsRepository extends DbRepository {
 		sortBy: {},
 		id: ObjectId | null,
 	): Promise<CommentsTypeDb[]> {
-		const searchString = id ? { bloggerId: id } : {};
+		const searchString = id ? { postId: id } : {};
 
-		return commentsCollection
-			.find(searchString)
-			.skip(skip)
-			.limit(pageSize)
-			.sort(sortBy)
-			.toArray();
+		return commentsCollection.find(searchString).skip(skip).limit(pageSize).sort(sortBy).toArray();
 	}
 
 	async findCommentById(id: ObjectId): Promise<CommentsTypeDb | null> {

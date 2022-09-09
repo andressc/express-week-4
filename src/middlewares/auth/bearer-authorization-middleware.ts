@@ -3,6 +3,7 @@ import { NextFunction } from 'express';
 import { jwtService } from '../../application/jwt-service';
 import { usersService } from '../../domain/users-service';
 import { HttpStatusCode } from '../../types/StatusCode';
+import { stringToObjectId } from '../../helpers/stringToObjectId';
 
 export const bearerAuthorizationMiddleware = async (
 	req: Request,
@@ -17,7 +18,7 @@ export const bearerAuthorizationMiddleware = async (
 
 	const authUserId = await jwtService.getUserAuthByToken(token);
 	if (authUserId) {
-		req.user = await usersService.findUserById(authUserId.userId);
+		req.user = await usersService.findUserById(stringToObjectId(authUserId.userId));
 		return next();
 	}
 

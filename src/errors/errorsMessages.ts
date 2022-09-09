@@ -9,3 +9,6 @@ export const COMMENT_FORBIDDEN_EDIT = 'You do not have access to edit this comme
 
 export const EMAIL_NOT_CONFIRMED = 'Email not confirmed';
 export const MESSAGE_NOT_SENT = 'Message not sent';
+
+export const REFRESH_TOKEN_INCORRECT = 'Refresh token is incorrect';
+export const REFRESH_TOKEN_OVERDUE = 'Refresh token it is overdue';

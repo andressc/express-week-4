@@ -31,8 +31,8 @@ export const commentsService = {
 		);
 
 		const newItems: CommentsType[] = items.map((item) => {
-			const { _id, content, userId, userLogin, postId, addedAt } = item;
-			return { id: _id, content, userId, userLogin, postId, addedAt };
+			const { _id, content, userId, userLogin, addedAt } = item;
+			return { id: _id, content, userId, userLogin, addedAt };
 		});
 
 		return {
@@ -58,7 +58,8 @@ export const commentsService = {
 		if (!comment) throw new NotFoundError(COMMENT_NOT_FOUND);
 		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
 
-		if (comment.userId !== authUser.id) throw new ForbiddenError(COMMENT_FORBIDDEN_DELETE);
+		if (comment.userId.toString() !== authUser.id.toString())
+			throw new ForbiddenError(COMMENT_FORBIDDEN_DELETE);
 
 		const result = await commentsRepository.deleteComment(id);
 		if (!result) throw new NotFoundError(BLOGGER_NOT_FOUND);
@@ -70,7 +71,8 @@ export const commentsService = {
 		if (!comment) throw new NotFoundError(COMMENT_NOT_FOUND);
 		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
 
-		if (comment.userId !== authUser.id) throw new ForbiddenError(COMMENT_FORBIDDEN_EDIT);
+		if (comment.userId.toString() !== authUser.id.toString())
+			throw new ForbiddenError(COMMENT_FORBIDDEN_EDIT);
 
 		const result = await commentsRepository.updateComment(id, content);
 		if (!result) throw new Error(ERROR_DB);

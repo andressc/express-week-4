@@ -1,7 +1,7 @@
-import {PostsType, PostsTypeDb} from '../types/postsType';
-import {bloggersCollection, postsCollection} from '../db/db';
-import {DbRepository} from './db-repository';
-import {ObjectId} from 'mongodb';
+import { PostsType, PostsTypeDb } from '../types/postsType';
+import { bloggersCollection, postsCollection } from '../db/db';
+import { DbRepository } from './db-repository';
+import { ObjectId } from 'mongodb';
 
 export class PostsRepository extends DbRepository {
 	async findAllPosts(
@@ -12,12 +12,7 @@ export class PostsRepository extends DbRepository {
 	): Promise<PostsTypeDb[]> {
 		const searchString = id ? { bloggerId: id } : {};
 
-		return postsCollection
-			.find(searchString)
-			.skip(skip)
-			.limit(pageSize)
-			.sort(sortBy)
-			.toArray();
+		return postsCollection.find(searchString).skip(skip).limit(pageSize).sort(sortBy).toArray();
 	}
 
 	async findPostById(id: ObjectId): Promise<PostsTypeDb | null> {

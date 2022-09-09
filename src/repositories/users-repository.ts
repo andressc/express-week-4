@@ -1,16 +1,11 @@
-import {bloggersCollection, usersCollection} from '../db/db';
-import {EmailConfirmation, UsersTypeDb} from '../types/usersType';
-import {DbRepository} from './db-repository';
-import {ObjectId} from 'mongodb';
+import { bloggersCollection, usersCollection } from '../db/db';
+import { EmailConfirmation, UsersTypeDb } from '../types/usersType';
+import { DbRepository } from './db-repository';
+import { ObjectId } from 'mongodb';
 
 export class UsersRepository extends DbRepository {
 	async findAllUsers(skip: number, pageSize: number, sortBy: {}): Promise<UsersTypeDb[]> {
-		return usersCollection
-			.find({})
-			.skip(skip)
-			.limit(pageSize)
-			.sort(sortBy)
-			.toArray();
+		return usersCollection.find({}).skip(skip).limit(pageSize).sort(sortBy).toArray();
 	}
 
 	async findUserById(id: ObjectId): Promise<UsersTypeDb | null> {

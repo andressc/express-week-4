@@ -1,7 +1,7 @@
-import {bloggersCollection} from '../db/db';
-import {BloggersTypeDb} from '../types/bloggersType';
-import {DbRepository} from './db-repository';
-import {ObjectId} from 'mongodb';
+import { bloggersCollection } from '../db/db';
+import { BloggersTypeDb } from '../types/bloggersType';
+import { DbRepository } from './db-repository';
+import { ObjectId } from 'mongodb';
 
 export class BloggersRepository extends DbRepository {
 	async findAllBloggers(
@@ -12,13 +12,15 @@ export class BloggersRepository extends DbRepository {
 	): Promise<BloggersTypeDb[]> {
 		const searchString = searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
 
-		return bloggersCollection
-			//.find(searchString, { projection: { _id: 0 } })
-			.find(searchString)
-			.skip(skip)
-			.limit(pageSize)
-			.sort(sortBy)
-			.toArray();
+		return (
+			bloggersCollection
+				//.find(searchString, { projection: { _id: 0 } })
+				.find(searchString)
+				.skip(skip)
+				.limit(pageSize)
+				.sort(sortBy)
+				.toArray()
+		);
 	}
 
 	async findBloggerById(id: ObjectId): Promise<BloggersTypeDb | null> {
