@@ -92,9 +92,7 @@ export const authService = {
 		const isTokenExists: RefreshTokenType | null =
 			await refreshTokensRepository.findRefreshTokenByLogin(user.accountData.login);
 		if (!isTokenExists) {
-			const createdId: ObjectId | null = await refreshTokensRepository.createRefreshToken(
-				newRefreshToken,
-			);
+			const createdId: ObjectId | null = await refreshTokensRepository.createRefreshToken(newRefreshToken);
 			if (!createdId) throw new Error(ERROR_DB);
 		}
 
@@ -103,7 +101,7 @@ export const authService = {
 			if (!isUpdate) throw new Error(ERROR_DB);
 		}
 
-		const accessToken = await jwtService.createJWT(user);
+		const accessToken = await jwtService.createJWT(user, "10s");
 		return { accessToken, refreshToken: newRefreshToken.refreshToken };
 	},
 
@@ -124,7 +122,7 @@ export const authService = {
 		const isUpdate: boolean = await refreshTokensRepository.updateRefreshToken(newRefreshToken);
 		if (!isUpdate) throw new Error(ERROR_DB);
 
-		const accessToken = await jwtService.createJWT(user);
+		const accessToken = await jwtService.createJWT(user, "10s");
 		return { accessToken, refreshToken: newRefreshToken.refreshToken };
 	},
 

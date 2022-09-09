@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken';
 import { UsersTypeDb } from '../types/usersType';
 
 export const jwtService = {
-	async createJWT(user: UsersTypeDb) {
+	async createJWT(user: UsersTypeDb, expiresIn: string) {
 		return jwt.sign({ userId: user._id }, '56ytuhbvcw4rhe6rtcvjuoiporeesfh', {
-			expiresIn: '10s',
+			expiresIn,
 		});
 	},
 

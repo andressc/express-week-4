@@ -1,10 +1,10 @@
 import { UsersTypeDb } from '../types/usersType';
-import { idCreator } from '../helpers/idCreator';
 import add from 'date-fns/add';
+import {jwtService} from "./jwt-service";
 
 export const refreshTokenService = {
 	async createRefreshToken(user: UsersTypeDb) {
-		const refreshToken = idCreator().toString();
+		const refreshToken = await jwtService.createJWT(user, "20s");
 		return {
 			refreshToken,
 			login: user.accountData.login,
