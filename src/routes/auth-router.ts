@@ -27,7 +27,7 @@ authRouter.post(
 				httpOnly: true,
 				//sameSite: 'None',
 				secure: true,
-				maxAge: 60 * 1000,
+				maxAge: 20000,
 			});
 
 			return res.send({ accessToken: token.accessToken });

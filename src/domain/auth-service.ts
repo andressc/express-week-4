@@ -16,8 +16,7 @@ import {
 } from '../errors/errorsMessages';
 import { BadRequestError } from '../errors/badRequestError';
 import { ObjectId } from 'mongodb';
-import { UsersType } from '../types/usersType';
-import { usersService } from './users-service';
+import {UsersType, UsersTypeDb} from '../types/usersType';
 import { AuthTokenType, RefreshTokenType } from '../types/authTokenType';
 import { refreshTokenService } from '../application/refresh-token-service';
 
@@ -100,7 +99,7 @@ export const authService = {
 			if (!isUpdate) throw new Error(ERROR_DB);
 		}
 
-		const accessToken = await jwtService.createJWT(user, "10s");
+		const accessToken = await jwtService.createJWT(user, "60s");
 		return { accessToken, refreshToken: newRefreshToken.refreshToken };
 	},
 
@@ -132,15 +131,15 @@ export const authService = {
 	}> {
 		if (!authUser) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		const user: UsersType = await usersService.findUserById(authUser.id);
+		const user: UsersTypeDb | null = await usersRepository.findUserById(authUser.id);
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
 		const {
 			accountData: { email, login },
-			id,
+			_id,
 		} = user;
 
-		return { email, login, userId: id.toString() };
+		return { email, login, userId: _id.toString() };
 	},
 
 	async deleteRefreshToken(refreshToken: string): Promise<void> {
