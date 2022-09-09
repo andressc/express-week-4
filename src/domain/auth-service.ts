@@ -16,7 +16,6 @@ import {
 } from '../errors/errorsMessages';
 import { BadRequestError } from '../errors/badRequestError';
 import { ObjectId } from 'mongodb';
-import { NotFoundError } from '../errors/notFoundError';
 import { UsersType } from '../types/usersType';
 import { usersService } from './users-service';
 import { AuthTokenType, RefreshTokenType } from '../types/authTokenType';
@@ -131,10 +130,10 @@ export const authService = {
 		login: string;
 		userId: string;
 	}> {
-		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
+		if (!authUser) throw new UnauthorizedError(USER_NOT_FOUND);
 
 		const user: UsersType = await usersService.findUserById(authUser.id);
-		if (!user) throw new NotFoundError(USER_NOT_FOUND);
+		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
 		const {
 			accountData: { email, login },
