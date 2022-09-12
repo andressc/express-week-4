@@ -92,7 +92,7 @@ authRouter.post(
 	},
 );
 
-authRouter.post(
+authRouter.get(
 	'/me',
 	rateLimitMiddleware,
 	bearerAuthorizationMiddleware,
