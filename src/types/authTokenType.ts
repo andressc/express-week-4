@@ -5,6 +5,4 @@ export type AuthTokenType = {
 
 export type RefreshTokenType = {
 	refreshToken: string;
-	login: string;
-	expirationDate: Date;
 };

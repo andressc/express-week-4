@@ -4,8 +4,8 @@ import { ObjectId } from 'mongodb';
 import { RefreshTokenType } from '../types/authTokenType';
 
 export class RefreshTokensRepository extends DbRepository {
-	async createRefreshToken(newRefreshToken: RefreshTokenType): Promise<ObjectId | null> {
-		const result = await refreshTokensCollection.insertOne(newRefreshToken);
+	async createRefreshToken(refreshToken: string): Promise<ObjectId | null> {
+		const result = await refreshTokensCollection.insertOne({ refreshToken });
 
 		if (!result.acknowledged) return null;
 		return result.insertedId;
@@ -20,6 +20,7 @@ export class RefreshTokensRepository extends DbRepository {
 		return refreshToken;
 	}
 
+	/*
 	async findRefreshTokenByLogin(login: string): Promise<RefreshTokenType | null> {
 		return refreshTokensCollection.findOne({ login });
 	}
@@ -39,7 +40,7 @@ export class RefreshTokensRepository extends DbRepository {
 	async deleteToken(refreshToken: string): Promise<boolean> {
 		const result = await refreshTokensCollection.deleteOne({ refreshToken });
 		return result.deletedCount === 1;
-	}
+	}*/
 
 	async deleteAllTokens(): Promise<boolean> {
 		const result = await refreshTokensCollection.deleteMany({});

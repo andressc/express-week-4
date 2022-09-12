@@ -11,14 +11,13 @@ import {
 	ERROR_DB,
 	MESSAGE_NOT_SENT,
 	REFRESH_TOKEN_INCORRECT,
-	REFRESH_TOKEN_OVERDUE,
 	USER_NOT_FOUND,
 } from '../errors/errorsMessages';
 import { BadRequestError } from '../errors/badRequestError';
 import { ObjectId } from 'mongodb';
-import {UsersType, UsersTypeDb} from '../types/usersType';
-import { AuthTokenType, RefreshTokenType } from '../types/authTokenType';
-import { refreshTokenService } from '../application/refresh-token-service';
+import { UsersType, UsersTypeDb } from '../types/usersType';
+import { AuthTokenType } from '../types/authTokenType';
+import { stringToObjectId } from '../helpers/stringToObjectId';
 
 export const authService = {
 	async registration(login: string, email: string, password: string): Promise<void> {
@@ -85,43 +84,27 @@ export const authService = {
 
 		if (user.accountData.passwordHash !== passwordHash) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		const newRefreshToken = await refreshTokenService.createRefreshToken(user);
-
-		const isTokenExists: RefreshTokenType | null =
-			await refreshTokensRepository.findRefreshTokenByLogin(user.accountData.login);
-		if (!isTokenExists) {
-			const createdId: ObjectId | null = await refreshTokensRepository.createRefreshToken(newRefreshToken);
-			if (!createdId) throw new Error(ERROR_DB);
-		}
-
-		if (isTokenExists) {
-			const isUpdate: boolean = await refreshTokensRepository.updateRefreshToken(newRefreshToken);
-			if (!isUpdate) throw new Error(ERROR_DB);
-		}
-
-		const accessToken = await jwtService.createJWT(user, "60s");
-		return { accessToken, refreshToken: newRefreshToken.refreshToken };
+		const tokens = await this._createTokens(user);
+		return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
 	},
 
 	async refreshToken(token: string | null): Promise<AuthTokenType> {
 		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const refreshToken = await refreshTokensRepository.findRefreshToken(token);
-		if (!refreshToken) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+		const tokenValidation = await refreshTokensRepository.findRefreshToken(token);
+		if (tokenValidation) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const user = await usersRepository.findUserByLogin(refreshToken.login);
+		const authUserId = await jwtService.getUserAuthByToken(token);
+		if (!authUserId) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		const oldRefreshToken = await refreshTokensRepository.createRefreshToken(token);
+		if (!oldRefreshToken) throw new Error(ERROR_DB);
+
+		const user = await usersRepository.findUserById(stringToObjectId(authUserId.userId));
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		if (refreshToken.expirationDate < new Date())
-			throw new UnauthorizedError(REFRESH_TOKEN_OVERDUE);
-
-		const newRefreshToken = await refreshTokenService.createRefreshToken(user);
-
-		const isUpdate: boolean = await refreshTokensRepository.updateRefreshToken(newRefreshToken);
-		if (!isUpdate) throw new Error(ERROR_DB);
-
-		const accessToken = await jwtService.createJWT(user, "10s");
-		return { accessToken, refreshToken: newRefreshToken.refreshToken };
+		const tokens = await this._createTokens(user);
+		return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
 	},
 
 	async getAuthUser(authUser: null | UsersType): Promise<{
@@ -142,10 +125,35 @@ export const authService = {
 		return { email, login, userId: _id.toString() };
 	},
 
-	async deleteRefreshToken(refreshToken: string): Promise<void> {
-		if (!refreshToken) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+	async deleteRefreshToken(token: string | null): Promise<void> {
+		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const isDeleted = await refreshTokensRepository.deleteToken(refreshToken);
-		if (!isDeleted) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+		const tokenValidation = await refreshTokensRepository.findRefreshToken(token);
+		if (tokenValidation) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		const authUserId = await jwtService.getUserAuthByToken(token);
+		if (!authUserId) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		const oldRefreshToken = await refreshTokensRepository.createRefreshToken(token);
+		if (!oldRefreshToken) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 	},
+
+	async _createTokens(user: UsersTypeDb): Promise<{ refreshToken: string; accessToken: string }> {
+		const refreshToken = await jwtService.createJWT(user, '20s');
+		const accessToken = await jwtService.createJWT(user, '10s');
+
+		return { refreshToken, accessToken };
+	},
+
+	/*async _testRefreshToken(token: string): Promise<string> {
+		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		const tokenValidation = await refreshTokensRepository.findRefreshToken(token);
+		if (tokenValidation) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		const authUserId = await jwtService.getUserAuthByToken(token);
+		if (!authUserId) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
+
+		return authUserId.userId
+	}*/
 };
