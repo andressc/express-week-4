@@ -2,9 +2,7 @@ import { idCreator } from '../helpers/idCreator';
 import bcrypt from 'bcrypt';
 import { generateHash } from '../helpers/generateHash';
 import { emailManager } from '../managers/email-manager';
-import { jwtService } from '../application/jwt-service';
 import { generateConfirmationCode } from '../helpers/generateConfirmationCode';
-import { refreshTokensRepository, usersRepository } from '../index';
 import { UnauthorizedError } from '../errors/unauthorizedError';
 import {
 	EMAIL_NOT_CONFIRMED,
@@ -18,8 +16,27 @@ import { ObjectId } from 'mongodb';
 import { UsersType, UsersTypeDb } from '../types/usersType';
 import { AuthTokenType } from '../types/authTokenType';
 import { stringToObjectId } from '../helpers/stringToObjectId';
+import { UsersRepository } from '../repositories/users-repository';
+import { RefreshTokensRepository } from '../repositories/refresh-tokens-repository';
+import { JwtService } from './jwt-service';
 
-export const authService = {
+export class AuthService {
+	usersRepository: UsersRepository;
+	refreshTokensRepository: RefreshTokensRepository;
+	jwtService: JwtService;
+	constructor() {
+		this.usersRepository = new UsersRepository();
+		this.refreshTokensRepository = new RefreshTokensRepository();
+		this.jwtService = new JwtService();
+	}
+
+	/**
+	 * Registration method
+	 * @param login - login user
+	 * @param email - email user
+	 * @param password - password user
+	 * @return void
+	 */
 	async registration(login: string, email: string, password: string): Promise<void> {
 		const passwordSalt = await bcrypt.genSalt(10);
 		const passwordHash = await generateHash(password, passwordSalt);
@@ -36,31 +53,31 @@ export const authService = {
 			emailConfirmation,
 		};
 
-		const createdId: ObjectId | null = await usersRepository.createUser(newUser);
+		const createdId: ObjectId | null = await this.usersRepository.createUser(newUser);
 		if (!createdId) throw new Error(ERROR_DB);
 
 		try {
 			await emailManager.sendEmailRegistrationMessage(email, emailConfirmation.confirmationCode);
 		} catch (e) {
-			await usersRepository.deleteUser(createdId);
+			await this.usersRepository.deleteUser(createdId);
 			throw new BadRequestError(MESSAGE_NOT_SENT + ' ' + e);
 		}
-	},
+	}
 
 	async registrationConfirmation(code: string): Promise<void> {
-		const user = await usersRepository.findUserByConfirmationCode(code);
+		const user = await this.usersRepository.findUserByConfirmationCode(code);
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		const isUpdated = await usersRepository.updateIsConfirmed(user._id);
+		const isUpdated = await this.usersRepository.updateIsConfirmed(user._id);
 		if (!isUpdated) throw new Error(ERROR_DB);
-	},
+	}
 
 	async registrationEmailResending(email: string): Promise<void> {
-		const user = await usersRepository.findUserByEmail(email);
+		const user = await this.usersRepository.findUserByEmail(email);
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
 		const emailConfirmation = generateConfirmationCode(false);
-		const isUpdated = await usersRepository.updateEmailConfirmation(email, emailConfirmation);
+		const isUpdated = await this.usersRepository.updateEmailConfirmation(email, emailConfirmation);
 		if (!isUpdated) throw new Error(ERROR_DB);
 
 		try {
@@ -68,10 +85,10 @@ export const authService = {
 		} catch (error) {
 			throw new BadRequestError(MESSAGE_NOT_SENT);
 		}
-	},
+	}
 
 	async login(login: string, password: string): Promise<AuthTokenType> {
-		const user = await usersRepository.findUserByLogin(login);
+		const user = await this.usersRepository.findUserByLogin(login);
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
 		if (!user.emailConfirmation.isConfirmed) throw new UnauthorizedError(EMAIL_NOT_CONFIRMED);
@@ -86,26 +103,26 @@ export const authService = {
 
 		const tokens = await this._createTokens(user);
 		return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
-	},
+	}
 
 	async refreshToken(token: string | null): Promise<AuthTokenType> {
 		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const tokenValidation = await refreshTokensRepository.findRefreshToken(token);
+		const tokenValidation = await this.refreshTokensRepository.findRefreshToken(token);
 		if (tokenValidation) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const authUserId = await jwtService.getUserAuthByToken(token);
+		const authUserId = await this.jwtService.getUserAuthByToken(token);
 		if (!authUserId) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const oldRefreshToken = await refreshTokensRepository.createRefreshToken(token);
+		const oldRefreshToken = await this.refreshTokensRepository.createRefreshToken(token);
 		if (!oldRefreshToken) throw new Error(ERROR_DB);
 
-		const user = await usersRepository.findUserById(stringToObjectId(authUserId.userId));
+		const user = await this.usersRepository.findUserById(stringToObjectId(authUserId.userId));
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
 		const tokens = await this._createTokens(user);
 		return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
-	},
+	}
 
 	async getAuthUser(authUser: null | UsersType): Promise<{
 		email: string;
@@ -114,7 +131,7 @@ export const authService = {
 	}> {
 		if (!authUser) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		const user: UsersTypeDb | null = await usersRepository.findUserById(authUser.id);
+		const user: UsersTypeDb | null = await this.usersRepository.findUserById(authUser.id);
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
 		const {
@@ -123,27 +140,27 @@ export const authService = {
 		} = user;
 
 		return { email, login, userId: _id.toString() };
-	},
+	}
 
 	async deleteRefreshToken(token: string | null): Promise<void> {
 		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const tokenValidation = await refreshTokensRepository.findRefreshToken(token);
+		const tokenValidation = await this.refreshTokensRepository.findRefreshToken(token);
 		if (tokenValidation) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const authUserId = await jwtService.getUserAuthByToken(token);
+		const authUserId = await this.jwtService.getUserAuthByToken(token);
 		if (!authUserId) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 
-		const oldRefreshToken = await refreshTokensRepository.createRefreshToken(token);
+		const oldRefreshToken = await this.refreshTokensRepository.createRefreshToken(token);
 		if (!oldRefreshToken) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
-	},
+	}
 
 	async _createTokens(user: UsersTypeDb): Promise<{ refreshToken: string; accessToken: string }> {
-		const refreshToken = await jwtService.createJWT(user, '20s');
-		const accessToken = await jwtService.createJWT(user, '10s');
+		const refreshToken = await this.jwtService.createJWT(user, '20s');
+		const accessToken = await this.jwtService.createJWT(user, '10s');
 
 		return { refreshToken, accessToken };
-	},
+	}
 
 	/*async _testRefreshToken(token: string): Promise<string> {
 		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
@@ -156,4 +173,4 @@ export const authService = {
 
 		return authUserId.userId
 	}*/
-};
+}

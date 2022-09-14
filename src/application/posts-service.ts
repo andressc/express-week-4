@@ -1,11 +1,8 @@
 import { PostsType, PostsTypeDb, PostsTypeReq } from '../types/postsType';
-import { bloggersService } from './bloggers-service';
 import { idCreator } from '../helpers/idCreator';
 import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { UsersType } from '../types/usersType';
-import { usersService } from './users-service';
 import { CommentsType, CommentsTypeDb } from '../types/commentsType';
-import { commentsRepository, postsRepository } from '../index';
 import { ObjectId } from 'mongodb';
 import {
 	BLOGGER_NOT_FOUND,
@@ -15,18 +12,33 @@ import {
 } from '../errors/errorsMessages';
 import { NotFoundError } from '../errors/notFoundError';
 import { paginationCalc } from '../helpers/paginationCalc';
-import { commentsService } from './comments-service';
 import { stringToObjectId } from '../helpers/stringToObjectId';
+import { PostsRepository } from '../repositories/posts-repository';
+import { CommentsRepository } from '../repositories/comments-repository';
+import { UsersService } from './users-service';
+import { bloggersService } from './bloggers-service';
+import { CommentsService } from './comments-service';
 
-export const postsService = {
+export class PostsService {
+	postsRepository: PostsRepository;
+	commentsRepository: CommentsRepository;
+	usersService: UsersService;
+	commentsService: CommentsService;
+	constructor() {
+		this.postsRepository = new PostsRepository();
+		this.commentsRepository = new CommentsRepository();
+		this.usersService = new UsersService();
+		this.commentsService = new CommentsService();
+	}
+
 	async findAllPosts(
 		query: PaginationTypeQuery,
 		id: ObjectId | null = null,
 	): Promise<PaginationType<PostsType[]>> {
-		const totalCount: number = await postsRepository.getTotalCount(id);
+		const totalCount: number = await this.postsRepository.getTotalCount(id);
 		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
 
-		const items: PostsTypeDb[] = await postsRepository.findAllPosts(
+		const items: PostsTypeDb[] = await this.postsRepository.findAllPosts(
 			data.skip,
 			data.pageSize,
 			data.sortBy,
@@ -45,30 +57,30 @@ export const postsService = {
 			totalCount: data.totalCount,
 			items: newItems,
 		};
-	},
+	}
 
 	async findAllCommentsOfPost(
 		id: ObjectId,
 		query: PaginationTypeQuery,
 	): Promise<PaginationType<CommentsType[]>> {
-		const post = await postsService.findPostById(id);
+		const post = await this.findPostById(id);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		return commentsService.findAllComments(query, id);
-	},
+		return this.commentsService.findAllComments(query, id);
+	}
 
 	async findPostById(id: ObjectId): Promise<PostsType> {
-		const post: PostsTypeDb | null = await postsRepository.findPostById(id);
+		const post: PostsTypeDb | null = await this.postsRepository.findPostById(id);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
 		const { _id, title, shortDescription, content, bloggerId, bloggerName } = post;
 		return { id: _id, title, shortDescription, content, bloggerId, bloggerName };
-	},
+	}
 
 	async deletePost(id: ObjectId): Promise<void> {
-		const result: boolean = await postsRepository.deletePost(id);
+		const result: boolean = await this.postsRepository.deletePost(id);
 		if (!result) throw new NotFoundError(POST_NOT_FOUND);
-	},
+	}
 
 	async updatePost(
 		id: ObjectId,
@@ -78,7 +90,7 @@ export const postsService = {
 		const blogger = await bloggersService.findBloggerById(bloggerIdObjectId);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
-		const result = await postsRepository.updatePost(id, {
+		const result = await this.postsRepository.updatePost(id, {
 			id,
 			title,
 			shortDescription,
@@ -87,7 +99,7 @@ export const postsService = {
 			bloggerName: blogger.name,
 		});
 		if (!result) throw new Error(ERROR_DB);
-	},
+	}
 
 	async createPost(
 		title: string,
@@ -107,7 +119,7 @@ export const postsService = {
 			bloggerName: blogger.name,
 		};
 
-		const createdId: ObjectId | null = await postsRepository.createPost(newPost);
+		const createdId: ObjectId | null = await this.postsRepository.createPost(newPost);
 		if (!createdId) throw new Error(ERROR_DB);
 
 		return {
@@ -118,7 +130,7 @@ export const postsService = {
 			bloggerId,
 			bloggerName: blogger.name,
 		};
-	},
+	}
 
 	async createCommentPost(
 		content: string,
@@ -127,10 +139,10 @@ export const postsService = {
 	): Promise<CommentsType> {
 		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
 
-		const user: UsersType = await usersService.findUserById(authUser.id);
+		const user: UsersType = await this.usersService.findUserById(authUser.id);
 		if (!user) throw new NotFoundError(USER_NOT_FOUND);
 
-		const post: PostsType = await postsService.findPostById(postId);
+		const post: PostsType = await this.findPostById(postId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
 		const newComment: CommentsTypeDb = {
@@ -142,7 +154,7 @@ export const postsService = {
 			addedAt: new Date().toISOString(),
 		};
 
-		const createdId: ObjectId | null = await commentsRepository.createComment(newComment);
+		const createdId: ObjectId | null = await this.commentsRepository.createComment(newComment);
 		if (!createdId) throw new Error(ERROR_DB);
 
 		return {
@@ -152,5 +164,5 @@ export const postsService = {
 			userLogin: user.accountData.login,
 			addedAt: new Date().toISOString(),
 		};
-	},
-};
+	}
+}

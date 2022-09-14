@@ -2,21 +2,28 @@ import { BloggersType, BloggersTypeDb } from '../types/bloggersType';
 import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { PostsType } from '../types/postsType';
 import { idCreator } from '../helpers/idCreator';
-import { bloggersRepository } from '../index';
 import { ObjectId } from 'mongodb';
 import { paginationCalc } from '../helpers/paginationCalc';
 import { BLOGGER_NOT_FOUND, ERROR_DB } from '../errors/errorsMessages';
 import { NotFoundError } from '../errors/notFoundError';
-import { postsService } from './posts-service';
+import { BloggersRepository } from '../repositories/bloggers-repository';
+import { PostsService } from './posts-service';
 
-export const bloggersService = {
+export class BloggersService {
+	bloggersRepository: BloggersRepository;
+	postsService: PostsService;
+	constructor() {
+		this.bloggersRepository = new BloggersRepository();
+		this.postsService = new PostsService();
+	}
+
 	async findAllBloggers(query: PaginationTypeQuery): Promise<PaginationType<BloggersType[]>> {
 		const searchNameTerm = query.searchNameTerm;
 
-		const totalCount: number = await bloggersRepository.getTotalCount(searchNameTerm);
+		const totalCount: number = await this.bloggersRepository.getTotalCount(searchNameTerm);
 		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
 
-		const items: BloggersTypeDb[] = await bloggersRepository.findAllBloggers(
+		const items: BloggersTypeDb[] = await this.bloggersRepository.findAllBloggers(
 			data.skip,
 			data.pageSize,
 			data.sortBy,
@@ -35,45 +42,46 @@ export const bloggersService = {
 			totalCount: data.totalCount,
 			items: newItems,
 		};
-	},
+	}
 
 	async findAllPostsBlogger(
 		query: PaginationTypeQuery,
 		id: ObjectId | null = null,
 	): Promise<PaginationType<PostsType[]>> {
-		return postsService.findAllPosts(query, id);
-	},
+		return this.postsService.findAllPosts(query, id);
+	}
 
 	async findBloggerById(id: ObjectId): Promise<BloggersType> {
-		const blogger: BloggersTypeDb | null = await bloggersRepository.findBloggerById(id);
+		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(id);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
 		const { _id, name, youtubeUrl } = blogger;
 		return { id: _id, name, youtubeUrl };
-	},
+	}
 
 	async deleteBlogger(id: ObjectId): Promise<void> {
-		const result: boolean = await bloggersRepository.deleteBlogger(id);
+		const result: boolean = await this.bloggersRepository.deleteBlogger(id);
 		if (!result) throw new NotFoundError(BLOGGER_NOT_FOUND);
-	},
+	}
 
 	async updateBlogger(id: ObjectId, name: string, youtubeUrl: string): Promise<void> {
-		const blogger: BloggersType = await bloggersService.findBloggerById(id);
+		const blogger: BloggersType = await this.findBloggerById(id);
 
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
-		const result = await bloggersRepository.updateBlogger(id, name, youtubeUrl);
+		const result = await this.bloggersRepository.updateBlogger(id, name, youtubeUrl);
 		if (!result) throw new Error(ERROR_DB);
-	},
+	}
 
 	async createBlogger(name: string, youtubeUrl: string): Promise<BloggersType> {
 		const newBlogger: BloggersTypeDb = { _id: idCreator(), name, youtubeUrl };
 
-		const createdId: ObjectId | null = await bloggersRepository.createBlogger(newBlogger);
+		const createdId: ObjectId | null = await this.bloggersRepository.createBlogger(newBlogger);
+
 		if (!createdId) throw new Error(ERROR_DB);
 
 		return { id: createdId, name, youtubeUrl };
-	},
+	}
 
 	async createBloggerPost(
 		id: ObjectId,
@@ -81,6 +89,8 @@ export const bloggersService = {
 		shortDescription: string,
 		content: string,
 	): Promise<PostsType> {
-		return postsService.createPost(title, shortDescription, content, id);
-	},
-};
+		return this.postsService.createPost(title, shortDescription, content, id);
+	}
+}
+
+export const bloggersService = new BloggersService();

@@ -1,10 +1,15 @@
 import { idCreator } from '../helpers/idCreator';
 import { RemoteUserIpType } from '../types/remoteUserIpType';
-import { remoteUserIpRepository } from '../index';
 import { ObjectId } from 'mongodb';
 import { ERROR_DB } from '../errors/errorsMessages';
+import { RemoteUserIpRepository } from '../repositories/remote-user-ip-repository';
 
-export const remoteUserIpService = {
+export class RemoteUserIpService {
+	remoteUserIpRepository: RemoteUserIpRepository;
+	constructor() {
+		this.remoteUserIpRepository = new RemoteUserIpRepository();
+	}
+
 	async createRemoteUserIp(ip: string, url: string): Promise<RemoteUserIpType> {
 		const newIp = {
 			_id: idCreator(),
@@ -13,13 +18,15 @@ export const remoteUserIpService = {
 			date: new Date(),
 		};
 
-		const createdId: ObjectId | null = await remoteUserIpRepository.createRemoteUserIp(newIp);
+		const createdId: ObjectId | null = await this.remoteUserIpRepository.createRemoteUserIp(newIp);
 		if (!createdId) throw new Error(ERROR_DB);
 
 		return { _id: createdId, ip, url, date: newIp.date };
-	},
+	}
 
 	async countRemoteUserIp(ip: string, url: string): Promise<number> {
-		return await remoteUserIpRepository.countRemoteUserIp(ip, url);
-	},
-};
+		return await this.remoteUserIpRepository.countRemoteUserIp(ip, url);
+	}
+}
+
+export const remoteUserIpService = new RemoteUserIpService();

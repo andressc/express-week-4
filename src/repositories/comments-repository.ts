@@ -1,9 +1,8 @@
-import { commentsCollection } from '../db/db';
+import { CommentModel } from '../db/db';
 import { CommentsTypeDb } from '../types/commentsType';
-import { DbRepository } from './db-repository';
 import { ObjectId } from 'mongodb';
 
-export class CommentsRepository extends DbRepository {
+export class CommentsRepository {
 	async findAllComments(
 		skip: number,
 		pageSize: number,
@@ -12,40 +11,40 @@ export class CommentsRepository extends DbRepository {
 	): Promise<CommentsTypeDb[]> {
 		const searchString = id ? { postId: id } : {};
 
-		return commentsCollection.find(searchString).skip(skip).limit(pageSize).sort(sortBy).toArray();
+		return CommentModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
 	async findCommentById(id: ObjectId): Promise<CommentsTypeDb | null> {
-		const comment: CommentsTypeDb | null = await commentsCollection.findOne({ _id: id });
+		const comment: CommentsTypeDb | null = await CommentModel.findOne({ _id: id });
 
 		if (!comment) return null;
 		return comment;
 	}
 
 	async deleteComment(id: ObjectId): Promise<boolean> {
-		const result = await commentsCollection.deleteOne({ _id: id });
+		const result = await CommentModel.deleteOne({ _id: id });
 		return result.deletedCount === 1;
 	}
 
 	async deleteAllComments(): Promise<boolean> {
-		const result = await commentsCollection.deleteMany({});
+		const result = await CommentModel.deleteMany({});
 		return result.deletedCount === 1;
 	}
 
 	async updateComment(id: ObjectId, content: string): Promise<boolean> {
-		const result = await commentsCollection.updateOne({ _id: id }, { $set: { content } });
+		const result = await CommentModel.updateOne({ _id: id }, { $set: { content } });
 		return result.acknowledged;
 	}
 
 	async createComment(newComment: CommentsTypeDb): Promise<ObjectId | null> {
-		const result = await commentsCollection.insertOne(newComment);
+		const result = await CommentModel.create(newComment);
 
-		if (!result.acknowledged) return null;
-		return result.insertedId;
+		if (!result.id) return null;
+		return result.id;
 	}
 
 	async getTotalCount(id: ObjectId | null): Promise<number> {
 		const searchString = id ? { postId: id } : {};
-		return await commentsCollection.countDocuments(searchString);
+		return CommentModel.countDocuments(searchString);
 	}
 }

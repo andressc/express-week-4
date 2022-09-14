@@ -1,18 +1,17 @@
-import { refreshTokensCollection } from '../db/db';
-import { DbRepository } from './db-repository';
+import { RefreshTokenModel } from '../db/db';
 import { ObjectId } from 'mongodb';
 import { RefreshTokenType } from '../types/authTokenType';
 
-export class RefreshTokensRepository extends DbRepository {
+export class RefreshTokensRepository {
 	async createRefreshToken(refreshToken: string): Promise<ObjectId | null> {
-		const result = await refreshTokensCollection.insertOne({ refreshToken });
+		const result = await RefreshTokenModel.create({ refreshToken });
 
-		if (!result.acknowledged) return null;
-		return result.insertedId;
+		if (!result.id) return null;
+		return result.id;
 	}
 
 	async findRefreshToken(token: string): Promise<RefreshTokenType | null> {
-		const refreshToken: RefreshTokenType | null = await refreshTokensCollection.findOne({
+		const refreshToken: RefreshTokenType | null = await RefreshTokenModel.findOne({
 			refreshToken: token,
 		});
 
@@ -20,30 +19,8 @@ export class RefreshTokensRepository extends DbRepository {
 		return refreshToken;
 	}
 
-	/*
-	async findRefreshTokenByLogin(login: string): Promise<RefreshTokenType | null> {
-		return refreshTokensCollection.findOne({ login });
-	}
-
-	async updateRefreshToken({
-		login,
-		refreshToken,
-		expirationDate,
-	}: RefreshTokenType): Promise<boolean> {
-		const result = await refreshTokensCollection.updateOne(
-			{ login },
-			{ $set: { refreshToken, expirationDate } },
-		);
-		return result.matchedCount === 1;
-	}
-
-	async deleteToken(refreshToken: string): Promise<boolean> {
-		const result = await refreshTokensCollection.deleteOne({ refreshToken });
-		return result.deletedCount === 1;
-	}*/
-
 	async deleteAllTokens(): Promise<boolean> {
-		const result = await refreshTokensCollection.deleteMany({});
+		const result = await RefreshTokenModel.deleteMany({});
 		return result.deletedCount === 1;
 	}
 }

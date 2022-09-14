@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { commentsService } from '../domain/comments-service';
+import { CommentsService } from '../application/comments-service';
 import { errorValidationMiddleware } from '../middlewares/validation/error-validation-middleware';
 import { commentsValidationMiddleware } from '../middlewares/validation/comments-validation-middleware';
 import { bearerAuthorizationMiddleware } from '../middlewares/auth/bearer-authorization-middleware';
@@ -11,12 +11,15 @@ import { generateErrorCode } from '../helpers/generateErrorCode';
 
 export const commentsRouter = Router({});
 
-commentsRouter.get(
-	'/:id',
-	objectIdValidationMiddleware,
-	async (req: Request<{ id: string }, {}, {}, {}>, res: Response) => {
+class CommentController {
+	commentsService: CommentsService;
+	constructor() {
+		this.commentsService = new CommentsService();
+	}
+
+	async findCommentById(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
 		try {
-			const comment: CommentsType = await commentsService.findCommentById(
+			const comment: CommentsType = await this.commentsService.findCommentById(
 				stringToObjectId(req.params.id),
 			);
 
@@ -25,18 +28,11 @@ commentsRouter.get(
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}
-	},
-);
+	}
 
-commentsRouter.put(
-	'/:id',
-	bearerAuthorizationMiddleware,
-	...commentsValidationMiddleware,
-	objectIdValidationMiddleware,
-	errorValidationMiddleware,
-	async (req: Request<{ id: string }, {}, CommentsType, {}>, res: Response) => {
+	async updateComment(req: Request<{ id: string }, {}, CommentsType, {}>, res: Response) {
 		try {
-			await commentsService.updateComment(
+			await this.commentsService.updateComment(
 				stringToObjectId(req.params.id),
 				req.body.content,
 				req.user,
@@ -46,20 +42,41 @@ commentsRouter.put(
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}
-	},
+	}
+
+	async deleteComment(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
+		try {
+			await this.commentsService.deleteComment(stringToObjectId(req.params.id), req.user);
+			return res.send(HttpStatusCode.NO_CONTENT);
+		} catch (error) {
+			const err = generateErrorCode(error);
+			return res.status(err.status).send(err.message);
+		}
+	}
+}
+
+const commentController = new CommentController();
+
+commentsRouter.get(
+	'/:id',
+	objectIdValidationMiddleware,
+	errorValidationMiddleware,
+	commentController.findCommentById.bind(commentController),
+);
+
+commentsRouter.put(
+	'/:id',
+	bearerAuthorizationMiddleware,
+	...commentsValidationMiddleware,
+	objectIdValidationMiddleware,
+	errorValidationMiddleware,
+	commentController.updateComment.bind(commentController),
 );
 
 commentsRouter.delete(
 	'/:id',
 	bearerAuthorizationMiddleware,
 	objectIdValidationMiddleware,
-	async (req: Request<{ id: string }, {}, {}, {}>, res: Response) => {
-		try {
-			await commentsService.deleteComment(stringToObjectId(req.params.id), req.user);
-			return res.send(HttpStatusCode.NO_CONTENT);
-		} catch (error) {
-			const err = generateErrorCode(error);
-			return res.status(err.status).send(err.message);
-		}
-	},
+	errorValidationMiddleware,
+	commentController.deleteComment.bind(commentController),
 );

@@ -1,9 +1,8 @@
 import { PostsType, PostsTypeDb } from '../types/postsType';
-import { bloggersCollection, postsCollection } from '../db/db';
-import { DbRepository } from './db-repository';
+import { BloggerModel, PostModelClass } from '../db/db';
 import { ObjectId } from 'mongodb';
 
-export class PostsRepository extends DbRepository {
+export class PostsRepository {
 	async findAllPosts(
 		skip: number,
 		pageSize: number,
@@ -12,40 +11,62 @@ export class PostsRepository extends DbRepository {
 	): Promise<PostsTypeDb[]> {
 		const searchString = id ? { bloggerId: id } : {};
 
-		return postsCollection.find(searchString).skip(skip).limit(pageSize).sort(sortBy).toArray();
+		return PostModelClass.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
 	async findPostById(id: ObjectId): Promise<PostsTypeDb | null> {
-		const post: PostsTypeDb | null = await postsCollection.findOne({ _id: id });
+		const post: PostsTypeDb | null = await PostModelClass.findOne({ _id: id }).lean();
 
 		if (!post) return null;
 		return post;
 	}
 
 	async deletePost(id: ObjectId): Promise<boolean> {
-		const result = await postsCollection.deleteOne({ _id: id });
-		return result.deletedCount === 1;
+		const postInstance = await PostModelClass.findOne({ _id: id });
+		if (!postInstance) return false;
+
+		postInstance.deleteOne();
+
+		return true;
+
+		/*const result = await PostModelClass.deleteOne({ _id: id });
+		return result.deletedCount === 1;*/
 	}
 
 	async deleteAllPosts(): Promise<boolean> {
-		const result = await postsCollection.deleteMany({});
+		const result = await PostModelClass.deleteMany({});
 		return result.deletedCount === 1;
 	}
 
 	async updatePost(id: ObjectId, updateData: PostsType): Promise<boolean> {
-		const result = await postsCollection.updateOne({ _id: id }, { $set: updateData });
-		return result.acknowledged;
+		const postInstance = await PostModelClass.findOne({ _id: id });
+		if (!postInstance) return false;
+
+		postInstance.title = updateData.title;
+		postInstance.shortDescription = updateData.shortDescription;
+		postInstance.content = updateData.content;
+		postInstance.bloggerId = updateData.bloggerId;
+		postInstance.bloggerName = updateData.bloggerName;
+		await postInstance.save();
+
+		return true;
+
+		/*const result = await PostModelClass.updateOne({ _id: id }, { $set: updateData });
+		return result.acknowledged;*/
 	}
 
 	async createPost(newPost: PostsTypeDb): Promise<ObjectId | null> {
-		const result = await postsCollection.insertOne(newPost);
+		const postInstance = new PostModelClass(newPost);
+		await postInstance.save();
+		return postInstance.id;
 
-		if (!result.acknowledged) return null;
-		return result.insertedId;
+		/*const result = await PostModelClass.create(newPost);
+		if (!result.id) return null;
+		return result.id;*/
 	}
 
 	async getTotalCount(id: ObjectId | null): Promise<number> {
 		const searchString = id ? { bloggerId: id } : {};
-		return await bloggersCollection.countDocuments(searchString);
+		return BloggerModel.countDocuments(searchString);
 	}
 }

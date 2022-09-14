@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { bloggersService } from '../../domain/bloggers-service';
+import { bloggersService } from '../../application/bloggers-service';
 import { stringToObjectId } from '../../helpers/stringToObjectId';
 
 export const bloggerIdValidationMiddleware = [

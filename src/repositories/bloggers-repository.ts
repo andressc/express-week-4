@@ -1,9 +1,8 @@
-import { bloggersCollection } from '../db/db';
+import { BloggerModel } from '../db/db';
 import { BloggersTypeDb } from '../types/bloggersType';
-import { DbRepository } from './db-repository';
 import { ObjectId } from 'mongodb';
 
-export class BloggersRepository extends DbRepository {
+export class BloggersRepository {
 	async findAllBloggers(
 		skip: number,
 		pageSize: number,
@@ -13,47 +12,47 @@ export class BloggersRepository extends DbRepository {
 		const searchString = searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
 
 		return (
-			bloggersCollection
+			BloggerModel
 				//.find(searchString, { projection: { _id: 0 } })
 				.find(searchString)
 				.skip(skip)
 				.limit(pageSize)
 				.sort(sortBy)
-				.toArray()
+				.lean()
 		);
 	}
 
 	async findBloggerById(id: ObjectId): Promise<BloggersTypeDb | null> {
-		const blogger: BloggersTypeDb | null = await bloggersCollection.findOne({ _id: id });
+		const blogger: BloggersTypeDb | null = await BloggerModel.findOne({ _id: id });
 
 		if (!blogger) return null;
 		return blogger;
 	}
 
 	async deleteBlogger(id: ObjectId): Promise<boolean> {
-		const result = await bloggersCollection.deleteOne({ _id: id });
+		const result = await BloggerModel.deleteOne({ _id: id });
 		return result.deletedCount === 1;
 	}
 
 	async deleteAllBloggers(): Promise<boolean> {
-		const result = await bloggersCollection.deleteMany({});
+		const result = await BloggerModel.deleteMany({});
 		return result.deletedCount === 1;
 	}
 
 	async updateBlogger(id: ObjectId, name: string, youtubeUrl: string): Promise<boolean> {
-		const result = await bloggersCollection.updateOne({ _id: id }, { $set: { name, youtubeUrl } });
+		const result = await BloggerModel.updateOne({ _id: id }, { $set: { name, youtubeUrl } });
 		return result.acknowledged;
 	}
 
 	async createBlogger(newBlogger: BloggersTypeDb): Promise<ObjectId | null> {
-		const result = await bloggersCollection.insertOne(newBlogger);
+		const result = await BloggerModel.create(newBlogger);
 
-		if (!result.acknowledged) return null;
-		return result.insertedId;
+		if (!result.id) return null;
+		return result.id;
 	}
 
 	async getTotalCount(searchNameTerm: string | null | undefined): Promise<number> {
 		const searchString = searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
-		return await bloggersCollection.countDocuments(searchString);
+		return BloggerModel.countDocuments(searchString);
 	}
 }

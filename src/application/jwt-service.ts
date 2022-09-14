@@ -1,12 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { UsersTypeDb } from '../types/usersType';
 
-export const jwtService = {
+export class JwtService {
 	async createJWT(user: UsersTypeDb, expiresIn: string) {
 		return jwt.sign({ userId: user._id }, '56ytuhbvcw4rhe6rtcvjuoiporeesfh', {
 			expiresIn,
 		});
-	},
+	}
 
 	async getUserAuthByToken(token: string) {
 		try {
@@ -15,5 +15,7 @@ export const jwtService = {
 		} catch (e) {
 			return null;
 		}
-	},
-};
+	}
+}
+
+export const jwtService = new JwtService();

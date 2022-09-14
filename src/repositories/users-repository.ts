@@ -1,34 +1,33 @@
-import { bloggersCollection, usersCollection } from '../db/db';
+import { BloggerModel, UserModel } from '../db/db';
 import { EmailConfirmation, UsersTypeDb } from '../types/usersType';
-import { DbRepository } from './db-repository';
 import { ObjectId } from 'mongodb';
 
-export class UsersRepository extends DbRepository {
+export class UsersRepository {
 	async findAllUsers(skip: number, pageSize: number, sortBy: {}): Promise<UsersTypeDb[]> {
-		return usersCollection.find({}).skip(skip).limit(pageSize).sort(sortBy).toArray();
+		return UserModel.find({}).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
 	async findUserById(id: ObjectId): Promise<UsersTypeDb | null> {
-		const user: UsersTypeDb | null = await usersCollection.findOne({ _id: id });
+		const user: UsersTypeDb | null = await UserModel.findOne({ _id: id });
 
 		if (!user) return null;
 		return user;
 	}
 
 	async findUserByLogin(login: string): Promise<UsersTypeDb | null> {
-		return await usersCollection.findOne({ 'accountData.login': login });
+		return UserModel.findOne({ 'accountData.login': login });
 	}
 
 	async findUserByEmail(email: string): Promise<UsersTypeDb | null> {
-		return await usersCollection.findOne({ 'accountData.email': email });
+		return UserModel.findOne({ 'accountData.email': email });
 	}
 
 	async findUserByConfirmationCode(code: string): Promise<UsersTypeDb | null> {
-		return await usersCollection.findOne({ 'emailConfirmation.confirmationCode': code });
+		return UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
 	}
 
 	async updateIsConfirmed(id: ObjectId): Promise<boolean> {
-		const result = await usersCollection.updateOne(
+		const result = await UserModel.updateOne(
 			{ _id: id },
 			{ $set: { 'emailConfirmation.isConfirmed': true } },
 		);
@@ -39,7 +38,7 @@ export class UsersRepository extends DbRepository {
 		email: string,
 		emailConfirmation: EmailConfirmation,
 	): Promise<boolean> {
-		const result = await usersCollection.updateOne(
+		const result = await UserModel.updateOne(
 			{ 'accountData.email': email },
 			{ $set: { emailConfirmation } },
 		);
@@ -47,23 +46,23 @@ export class UsersRepository extends DbRepository {
 	}
 
 	async deleteUser(id: ObjectId): Promise<boolean> {
-		const result = await usersCollection.deleteOne({ _id: id });
+		const result = await UserModel.deleteOne({ _id: id });
 		return result.deletedCount === 1;
 	}
 
 	async deleteAllUsers(): Promise<boolean> {
-		const result = await usersCollection.deleteMany({});
+		const result = await UserModel.deleteMany({});
 		return result.deletedCount === 1;
 	}
 
 	async createUser(newUser: UsersTypeDb): Promise<ObjectId | null> {
-		const result = await usersCollection.insertOne(newUser);
+		const result = await UserModel.create(newUser);
 
-		if (!result.acknowledged) return null;
-		return result.insertedId;
+		if (!result.id) return null;
+		return result.id;
 	}
 
 	async getTotalCount(): Promise<number> {
-		return await bloggersCollection.countDocuments({});
+		return BloggerModel.countDocuments({});
 	}
 }

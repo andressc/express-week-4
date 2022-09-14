@@ -7,15 +7,27 @@ export type PaginationType<T> = {
 };
 
 export type PaginationTypeQuery = {
-	pageNumber: number;
-	pageSize: number;
-	totalCount: number;
+	pageNumber: string;
+	pageSize: string;
+	totalCount: string | number;
 	sortBy: string | null;
 	sortDirection: string | null;
-	id?: number | null;
+	id?: string | null;
 	searchNameTerm?: string | null;
 	searchLoginTerm?: string | null;
 	searchEmailTerm?: string | null;
+};
+
+export type PaginationTypeQueryRequest = {
+	pageNumber: string;
+	pageSize: string;
+	totalCount: string;
+	sortBy: string;
+	sortDirection: string;
+	id?: string;
+	searchNameTerm?: string;
+	searchLoginTerm?: string;
+	searchEmailTerm?: string;
 };
 
 export type PaginationCalc = {

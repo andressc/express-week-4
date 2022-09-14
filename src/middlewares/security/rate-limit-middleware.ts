@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { NextFunction } from 'express';
-import { remoteUserIpService } from '../../domain/remote-user-ip-service';
+import { remoteUserIpService } from '../../application/remote-user-ip-service';
 import { HttpStatusCode } from '../../types/StatusCode';
 
 export const rateLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {

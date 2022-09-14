@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { NextFunction } from 'express';
 import { jwtService } from '../../application/jwt-service';
-import { usersService } from '../../domain/users-service';
+import { usersService } from '../../application/users-service';
 import { HttpStatusCode } from '../../types/StatusCode';
 import { stringToObjectId } from '../../helpers/stringToObjectId';
 

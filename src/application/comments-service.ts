@@ -1,6 +1,5 @@
 import { CommentsType, CommentsTypeDb } from '../types/commentsType';
 import { UsersType } from '../types/usersType';
-import { commentsRepository } from '../index';
 import { ObjectId } from 'mongodb';
 import { NotFoundError } from '../errors/notFoundError';
 import {
@@ -14,16 +13,22 @@ import {
 import { ForbiddenError } from '../errors/forbiddenError';
 import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { paginationCalc } from '../helpers/paginationCalc';
+import { CommentsRepository } from '../repositories/comments-repository';
 
-export const commentsService = {
+export class CommentsService {
+	commentsRepository: CommentsRepository;
+	constructor() {
+		this.commentsRepository = new CommentsRepository();
+	}
+
 	async findAllComments(
 		query: PaginationTypeQuery,
 		id: ObjectId | null = null,
 	): Promise<PaginationType<CommentsType[]>> {
-		const totalCount: number = await commentsRepository.getTotalCount(id);
+		const totalCount: number = await this.commentsRepository.getTotalCount(id);
 		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
 
-		const items: CommentsTypeDb[] = await commentsRepository.findAllComments(
+		const items: CommentsTypeDb[] = await this.commentsRepository.findAllComments(
 			data.skip,
 			data.pageSize,
 			data.sortBy,
@@ -42,18 +47,18 @@ export const commentsService = {
 			totalCount: data.totalCount,
 			items: newItems,
 		};
-	},
+	}
 
 	async findCommentById(id: ObjectId): Promise<CommentsType> {
-		const comment: CommentsTypeDb | null = await commentsRepository.findCommentById(id);
+		const comment: CommentsTypeDb | null = await this.commentsRepository.findCommentById(id);
 		if (!comment) throw new NotFoundError(COMMENT_NOT_FOUND);
 
 		const { _id, content, userId, userLogin, addedAt } = comment;
 		return { id: _id, content, userId, userLogin, addedAt };
-	},
+	}
 
 	async deleteComment(id: ObjectId, authUser: null | UsersType): Promise<void> {
-		const comment: CommentsTypeDb | null = await commentsRepository.findCommentById(id);
+		const comment: CommentsTypeDb | null = await this.commentsRepository.findCommentById(id);
 
 		if (!comment) throw new NotFoundError(COMMENT_NOT_FOUND);
 		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
@@ -61,12 +66,12 @@ export const commentsService = {
 		if (comment.userId.toString() !== authUser.id.toString())
 			throw new ForbiddenError(COMMENT_FORBIDDEN_DELETE);
 
-		const result = await commentsRepository.deleteComment(id);
+		const result = await this.commentsRepository.deleteComment(id);
 		if (!result) throw new NotFoundError(BLOGGER_NOT_FOUND);
-	},
+	}
 
 	async updateComment(id: ObjectId, content: string, authUser: null | UsersType): Promise<void> {
-		const comment: CommentsType = await commentsService.findCommentById(id);
+		const comment: CommentsType = await this.findCommentById(id);
 
 		if (!comment) throw new NotFoundError(COMMENT_NOT_FOUND);
 		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
@@ -74,7 +79,7 @@ export const commentsService = {
 		if (comment.userId.toString() !== authUser.id.toString())
 			throw new ForbiddenError(COMMENT_FORBIDDEN_EDIT);
 
-		const result = await commentsRepository.updateComment(id, content);
+		const result = await this.commentsRepository.updateComment(id, content);
 		if (!result) throw new Error(ERROR_DB);
-	},
-};
+	}
+}

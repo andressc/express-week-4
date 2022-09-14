@@ -1,5 +1,6 @@
 import { body } from 'express-validator';
-import { usersRepository } from '../../index';
+import { UsersTypeDb } from '../../types/usersType';
+import { usersService } from '../../application/users-service';
 
 export const registrationConfirmationValidationMiddleware = [
 	body('code')
@@ -9,8 +10,8 @@ export const registrationConfirmationValidationMiddleware = [
 		.isString()
 		.withMessage('must to be string')
 		.custom(async (value) => {
-			const user = await usersRepository.findUserByConfirmationCode(value);
-			if (!user) throw new Error('user not found');
+			const user: UsersTypeDb = await usersService.findUserByConfirmationCode(value);
+			//if (!user) throw new Error('user not found');
 			if (user.emailConfirmation.isConfirmed) throw new Error('already confirmed');
 			if (user.emailConfirmation.expirationDate < new Date())
 				throw new Error('confirmed code date expired');
