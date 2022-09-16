@@ -3,12 +3,13 @@ import { RemoteUserIpType } from '../types/remoteUserIpType';
 import { ObjectId } from 'mongodb';
 import { ERROR_DB } from '../errors/errorsMessages';
 import { RemoteUserIpRepository } from '../repositories/remote-user-ip-repository';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class RemoteUserIpService {
-	remoteUserIpRepository: RemoteUserIpRepository;
-	constructor() {
-		this.remoteUserIpRepository = new RemoteUserIpRepository();
-	}
+	constructor(
+		@inject(RemoteUserIpRepository) protected remoteUserIpRepository: RemoteUserIpRepository,
+	) {}
 
 	async createRemoteUserIp(ip: string, url: string): Promise<RemoteUserIpType> {
 		const newIp = {
@@ -28,5 +29,3 @@ export class RemoteUserIpService {
 		return await this.remoteUserIpRepository.countRemoteUserIp(ip, url);
 	}
 }
-
-export const remoteUserIpService = new RemoteUserIpService();

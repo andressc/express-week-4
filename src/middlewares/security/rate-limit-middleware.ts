@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 import { NextFunction } from 'express';
-import { remoteUserIpService } from '../../application/remote-user-ip-service';
+import { RemoteUserIpService } from '../../application/remote-user-ip-service';
 import { HttpStatusCode } from '../../types/StatusCode';
+import { container } from '../../psevdoIoc';
+
+const remoteUserIpService = container.resolve(RemoteUserIpService);
 
 export const rateLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {
 	await remoteUserIpService.createRemoteUserIp(req.ip, req.url);

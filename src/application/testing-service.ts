@@ -4,23 +4,18 @@ import { UsersRepository } from '../repositories/users-repository';
 import { CommentsRepository } from '../repositories/comments-repository';
 import { RemoteUserIpRepository } from '../repositories/remote-user-ip-repository';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens-repository';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class TestingService {
-	bloggersRepository: BloggersRepository;
-	postsRepository: PostsRepository;
-	usersRepository: UsersRepository;
-	commentsRepository: CommentsRepository;
-	remoteUserIpRepository: RemoteUserIpRepository;
-	refreshTokensRepository: RefreshTokensRepository;
-
-	constructor() {
-		this.bloggersRepository = new BloggersRepository();
-		this.postsRepository = new PostsRepository();
-		this.usersRepository = new UsersRepository();
-		this.commentsRepository = new CommentsRepository();
-		this.remoteUserIpRepository = new RemoteUserIpRepository();
-		this.refreshTokensRepository = new RefreshTokensRepository();
-	}
+	constructor(
+		@inject(BloggersRepository) protected bloggersRepository: BloggersRepository,
+		@inject(CommentsRepository) protected commentsRepository: CommentsRepository,
+		@inject(PostsRepository) protected postsRepository: PostsRepository,
+		@inject(RefreshTokensRepository) protected refreshTokensRepository: RefreshTokensRepository,
+		@inject(RemoteUserIpRepository) protected remoteUserIpRepository: RemoteUserIpRepository,
+		@inject(UsersRepository) protected usersRepository: UsersRepository,
+	) {}
 
 	async deleteAllData(): Promise<void> {
 		await this.bloggersRepository.deleteAllBloggers();

@@ -1,7 +1,7 @@
 import { PostsType, PostsTypeDb, PostsTypeReq } from '../types/postsType';
 import { idCreator } from '../helpers/idCreator';
 import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
-import { UsersType } from '../types/usersType';
+import { UsersType, UsersTypeDb } from '../types/usersType';
 import { CommentsType, CommentsTypeDb } from '../types/commentsType';
 import { ObjectId } from 'mongodb';
 import {
@@ -15,21 +15,21 @@ import { paginationCalc } from '../helpers/paginationCalc';
 import { stringToObjectId } from '../helpers/stringToObjectId';
 import { PostsRepository } from '../repositories/posts-repository';
 import { CommentsRepository } from '../repositories/comments-repository';
-import { UsersService } from './users-service';
-import { bloggersService } from './bloggers-service';
 import { CommentsService } from './comments-service';
+import { inject, injectable } from 'inversify';
+import { BloggersTypeDb } from '../types/bloggersType';
+import { BloggersRepository } from '../repositories/bloggers-repository';
+import { UsersRepository } from '../repositories/users-repository';
 
+@injectable()
 export class PostsService {
-	postsRepository: PostsRepository;
-	commentsRepository: CommentsRepository;
-	usersService: UsersService;
-	commentsService: CommentsService;
-	constructor() {
-		this.postsRepository = new PostsRepository();
-		this.commentsRepository = new CommentsRepository();
-		this.usersService = new UsersService();
-		this.commentsService = new CommentsService();
-	}
+	constructor(
+		@inject(PostsRepository) protected postsRepository: PostsRepository,
+		@inject(CommentsRepository) protected commentsRepository: CommentsRepository,
+		@inject(BloggersRepository) protected bloggersRepository: BloggersRepository,
+		@inject(UsersRepository) protected usersRepository: UsersRepository,
+		@inject(CommentsService) protected commentsService: CommentsService,
+	) {}
 
 	async findAllPosts(
 		query: PaginationTypeQuery,
@@ -87,7 +87,8 @@ export class PostsService {
 		{ title, shortDescription, content, bloggerId }: PostsTypeReq,
 	): Promise<void> {
 		const bloggerIdObjectId = stringToObjectId(bloggerId);
-		const blogger = await bloggersService.findBloggerById(bloggerIdObjectId);
+
+		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(id);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
 		const result = await this.postsRepository.updatePost(id, {
@@ -107,7 +108,7 @@ export class PostsService {
 		content: string,
 		bloggerId: ObjectId,
 	): Promise<PostsType> {
-		const blogger = await bloggersService.findBloggerById(bloggerId);
+		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(bloggerId);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
 		const newPost: PostsTypeDb = {
@@ -139,7 +140,7 @@ export class PostsService {
 	): Promise<CommentsType> {
 		if (!authUser) throw new NotFoundError(USER_NOT_FOUND);
 
-		const user: UsersType = await this.usersService.findUserById(authUser.id);
+		const user: UsersTypeDb | null = await this.usersRepository.findUserById(authUser.id);
 		if (!user) throw new NotFoundError(USER_NOT_FOUND);
 
 		const post: PostsType = await this.findPostById(postId);
@@ -148,7 +149,7 @@ export class PostsService {
 		const newComment: CommentsTypeDb = {
 			_id: idCreator(),
 			content,
-			userId: user.id,
+			userId: user._id,
 			userLogin: user.accountData.login,
 			postId: post.id,
 			addedAt: new Date().toISOString(),
@@ -160,7 +161,7 @@ export class PostsService {
 		return {
 			id: createdId,
 			content,
-			userId: user.id,
+			userId: user._id,
 			userLogin: user.accountData.login,
 			addedAt: new Date().toISOString(),
 		};

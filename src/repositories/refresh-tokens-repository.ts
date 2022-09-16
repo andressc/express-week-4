@@ -1,7 +1,9 @@
 import { RefreshTokenModel } from '../db/db';
 import { ObjectId } from 'mongodb';
 import { RefreshTokenType } from '../types/authTokenType';
+import { injectable } from 'inversify';
 
+@injectable()
 export class RefreshTokensRepository {
 	async createRefreshToken(refreshToken: string): Promise<ObjectId | null> {
 		const result = await RefreshTokenModel.create({ refreshToken });

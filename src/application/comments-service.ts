@@ -14,12 +14,11 @@ import { ForbiddenError } from '../errors/forbiddenError';
 import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { paginationCalc } from '../helpers/paginationCalc';
 import { CommentsRepository } from '../repositories/comments-repository';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class CommentsService {
-	commentsRepository: CommentsRepository;
-	constructor() {
-		this.commentsRepository = new CommentsRepository();
-	}
+	constructor(@inject(CommentsRepository) protected commentsRepository: CommentsRepository) {}
 
 	async findAllComments(
 		query: PaginationTypeQuery,

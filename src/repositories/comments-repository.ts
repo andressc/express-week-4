@@ -1,7 +1,9 @@
 import { CommentModel } from '../db/db';
 import { CommentsTypeDb } from '../types/commentsType';
 import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
 
+@injectable()
 export class CommentsRepository {
 	async findAllComments(
 		skip: number,

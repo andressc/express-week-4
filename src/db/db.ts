@@ -70,7 +70,7 @@ const refreshTokenSchema = new mongoose.Schema<RefreshTokenType>({
 	refreshToken: String,
 });
 
-export const PostModelClass = mongoose.model('posts', postSchema);
+export const PostModel = mongoose.model('posts', postSchema);
 export const BloggerModel = mongoose.model('bloggers', bloggerSchema);
 export const UserModel = mongoose.model('users', userSchema);
 export const CommentModel = mongoose.model('comments', commentSchema);

@@ -1,7 +1,9 @@
 import { BloggerModel } from '../db/db';
 import { BloggersTypeDb } from '../types/bloggersType';
 import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
 
+@injectable()
 export class BloggersRepository {
 	async findAllBloggers(
 		skip: number,

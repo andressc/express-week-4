@@ -8,14 +8,14 @@ import { BLOGGER_NOT_FOUND, ERROR_DB } from '../errors/errorsMessages';
 import { NotFoundError } from '../errors/notFoundError';
 import { BloggersRepository } from '../repositories/bloggers-repository';
 import { PostsService } from './posts-service';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class BloggersService {
-	bloggersRepository: BloggersRepository;
-	postsService: PostsService;
-	constructor() {
-		this.bloggersRepository = new BloggersRepository();
-		this.postsService = new PostsService();
-	}
+	constructor(
+		@inject(BloggersRepository) protected bloggersRepository: BloggersRepository,
+		@inject(PostsService) protected postsService: PostsService,
+	) {}
 
 	async findAllBloggers(query: PaginationTypeQuery): Promise<PaginationType<BloggersType[]>> {
 		const searchNameTerm = query.searchNameTerm;
@@ -92,5 +92,3 @@ export class BloggersService {
 		return this.postsService.createPost(title, shortDescription, content, id);
 	}
 }
-
-export const bloggersService = new BloggersService();

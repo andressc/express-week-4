@@ -1,7 +1,9 @@
 import { PostsType, PostsTypeDb } from '../types/postsType';
-import { BloggerModel, PostModelClass } from '../db/db';
+import { PostModel } from '../db/db';
 import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
 
+@injectable()
 export class PostsRepository {
 	async findAllPosts(
 		skip: number,
@@ -11,18 +13,18 @@ export class PostsRepository {
 	): Promise<PostsTypeDb[]> {
 		const searchString = id ? { bloggerId: id } : {};
 
-		return PostModelClass.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
+		return PostModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
 	async findPostById(id: ObjectId): Promise<PostsTypeDb | null> {
-		const post: PostsTypeDb | null = await PostModelClass.findOne({ _id: id }).lean();
+		const post: PostsTypeDb | null = await PostModel.findOne({ _id: id }).lean();
 
 		if (!post) return null;
 		return post;
 	}
 
 	async deletePost(id: ObjectId): Promise<boolean> {
-		const postInstance = await PostModelClass.findOne({ _id: id });
+		const postInstance = await PostModel.findOne({ _id: id });
 		if (!postInstance) return false;
 
 		postInstance.deleteOne();
@@ -34,12 +36,12 @@ export class PostsRepository {
 	}
 
 	async deleteAllPosts(): Promise<boolean> {
-		const result = await PostModelClass.deleteMany({});
+		const result = await PostModel.deleteMany({});
 		return result.deletedCount === 1;
 	}
 
 	async updatePost(id: ObjectId, updateData: PostsType): Promise<boolean> {
-		const postInstance = await PostModelClass.findOne({ _id: id });
+		const postInstance = await PostModel.findOne({ _id: id });
 		if (!postInstance) return false;
 
 		postInstance.title = updateData.title;
@@ -56,7 +58,7 @@ export class PostsRepository {
 	}
 
 	async createPost(newPost: PostsTypeDb): Promise<ObjectId | null> {
-		const postInstance = new PostModelClass(newPost);
+		const postInstance = new PostModel(newPost);
 		await postInstance.save();
 		return postInstance.id;
 
@@ -67,6 +69,6 @@ export class PostsRepository {
 
 	async getTotalCount(id: ObjectId | null): Promise<number> {
 		const searchString = id ? { bloggerId: id } : {};
-		return BloggerModel.countDocuments(searchString);
+		return PostModel.countDocuments(searchString);
 	}
 }

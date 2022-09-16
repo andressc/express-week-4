@@ -19,15 +19,23 @@ import { stringToObjectId } from '../helpers/stringToObjectId';
 import { UsersRepository } from '../repositories/users-repository';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens-repository';
 import { JwtService } from './jwt-service';
+import { inject, injectable } from 'inversify';
 
+@injectable()
 export class AuthService {
-	usersRepository: UsersRepository;
-	refreshTokensRepository: RefreshTokensRepository;
-	jwtService: JwtService;
-	constructor() {
-		this.usersRepository = new UsersRepository();
-		this.refreshTokensRepository = new RefreshTokensRepository();
-		this.jwtService = new JwtService();
+	constructor(
+		@inject(UsersRepository) protected usersRepository: UsersRepository,
+		@inject(RefreshTokensRepository) protected refreshTokensRepository: RefreshTokensRepository,
+		@inject(JwtService) protected jwtService: JwtService,
+	) {}
+
+	private async createTokens(
+		user: UsersTypeDb,
+	): Promise<{ refreshToken: string; accessToken: string }> {
+		const refreshToken = await this.jwtService.createJWT(user, '20m');
+		const accessToken = await this.jwtService.createJWT(user, '10m');
+
+		return { refreshToken, accessToken };
 	}
 
 	/**
@@ -101,7 +109,7 @@ export class AuthService {
 
 		if (user.accountData.passwordHash !== passwordHash) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		const tokens = await this._createTokens(user);
+		const tokens = await this.createTokens(user);
 		return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
 	}
 
@@ -120,7 +128,7 @@ export class AuthService {
 		const user = await this.usersRepository.findUserById(stringToObjectId(authUserId.userId));
 		if (!user) throw new UnauthorizedError(USER_NOT_FOUND);
 
-		const tokens = await this._createTokens(user);
+		const tokens = await this.createTokens(user);
 		return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
 	}
 
@@ -153,13 +161,6 @@ export class AuthService {
 
 		const oldRefreshToken = await this.refreshTokensRepository.createRefreshToken(token);
 		if (!oldRefreshToken) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
-	}
-
-	async _createTokens(user: UsersTypeDb): Promise<{ refreshToken: string; accessToken: string }> {
-		const refreshToken = await this.jwtService.createJWT(user, '20s');
-		const accessToken = await this.jwtService.createJWT(user, '10s');
-
-		return { refreshToken, accessToken };
 	}
 
 	/*async _testRefreshToken(token: string): Promise<string> {

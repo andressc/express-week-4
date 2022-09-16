@@ -1,6 +1,9 @@
 import { body } from 'express-validator';
-import { usersService } from '../../application/users-service';
+import { UsersService } from '../../application/users-service';
 import { UsersTypeDb } from '../../types/usersType';
+import { container } from '../../psevdoIoc';
+
+const usersService = container.resolve(UsersService);
 
 export const registrationResendingValidationMiddleware = [
 	body('email').custom(async (value) => {

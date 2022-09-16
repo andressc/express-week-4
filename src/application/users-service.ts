@@ -9,12 +9,11 @@ import {ERROR_DB, USER_NOT_FOUND} from '../errors/errorsMessages';
 import {ObjectId} from 'mongodb';
 import {paginationCalc} from '../helpers/paginationCalc';
 import {UsersRepository} from '../repositories/users-repository';
+import {inject, injectable} from 'inversify';
 
+@injectable()
 export class UsersService {
-	usersRepository: UsersRepository;
-	constructor() {
-		this.usersRepository = new UsersRepository();
-	}
+	constructor(@inject(UsersRepository) protected usersRepository: UsersRepository) {}
 
 	async findAllUsers(
 		query: PaginationTypeQuery,
@@ -82,10 +81,9 @@ export class UsersService {
 		if (!result) throw new NotFoundError(USER_NOT_FOUND);
 	}
 
-	async findUserByEmail(email: string): Promise<UsersTypeDb> {
-		const user: UsersTypeDb | null = await this.usersRepository.findUserByEmail(email);
-		if (!user) throw new NotFoundError(USER_NOT_FOUND);
-		return user;
+	async findUserByEmail(email: string): Promise<UsersTypeDb | null> {
+		//if (!user) throw new NotFoundError(USER_NOT_FOUND);
+		return await this.usersRepository.findUserByEmail(email);
 	}
 
 	async findUserByConfirmationCode(code: string): Promise<UsersTypeDb> {
@@ -98,5 +96,3 @@ export class UsersService {
 		return this.usersRepository.findUserByLogin(code);
 	}
 }
-
-export const usersService = new UsersService();

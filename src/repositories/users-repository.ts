@@ -1,7 +1,9 @@
-import { BloggerModel, UserModel } from '../db/db';
+import { UserModel } from '../db/db';
 import { EmailConfirmation, UsersTypeDb } from '../types/usersType';
 import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
 
+@injectable()
 export class UsersRepository {
 	async findAllUsers(skip: number, pageSize: number, sortBy: {}): Promise<UsersTypeDb[]> {
 		return UserModel.find({}).skip(skip).limit(pageSize).sort(sortBy).lean();
@@ -63,6 +65,6 @@ export class UsersRepository {
 	}
 
 	async getTotalCount(): Promise<number> {
-		return BloggerModel.countDocuments({});
+		return UserModel.countDocuments({});
 	}
 }

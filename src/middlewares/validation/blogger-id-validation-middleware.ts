@@ -1,6 +1,9 @@
 import { body } from 'express-validator';
-import { bloggersService } from '../../application/bloggers-service';
+import { BloggersService } from '../../application/bloggers-service';
 import { stringToObjectId } from '../../helpers/stringToObjectId';
+import { container } from '../../psevdoIoc';
+
+const bloggersService = container.resolve(BloggersService);
 
 export const bloggerIdValidationMiddleware = [
 	body('bloggerId')

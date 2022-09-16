@@ -1,6 +1,9 @@
 import { body } from 'express-validator';
 import { UsersTypeDb } from '../../types/usersType';
-import { usersService } from '../../application/users-service';
+import { UsersService } from '../../application/users-service';
+import { container } from '../../psevdoIoc';
+
+const usersService = container.resolve(UsersService);
 
 export const registrationConfirmationValidationMiddleware = [
 	body('code')

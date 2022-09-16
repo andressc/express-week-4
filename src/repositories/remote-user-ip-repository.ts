@@ -2,7 +2,9 @@ import { RemoteUserIpModel } from '../db/db';
 import { RemoteUserIpType } from '../types/remoteUserIpType';
 import sub from 'date-fns/sub';
 import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
 
+@injectable()
 export class RemoteUserIpRepository {
 	async createRemoteUserIp(remoteUserIp: RemoteUserIpType): Promise<ObjectId | null> {
 		const result = await RemoteUserIpModel.create(remoteUserIp);

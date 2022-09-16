@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { UsersTypeDb } from '../types/usersType';
+import { injectable } from 'inversify';
 
+@injectable()
 export class JwtService {
 	async createJWT(user: UsersTypeDb, expiresIn: string) {
 		return jwt.sign({ userId: user._id }, '56ytuhbvcw4rhe6rtcvjuoiporeesfh', {
@@ -17,5 +19,3 @@ export class JwtService {
 		}
 	}
 }
-
-export const jwtService = new JwtService();
