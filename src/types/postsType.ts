@@ -20,6 +20,7 @@ export type PostsType = {
 	content: string;
 	bloggerId: ObjectId;
 	bloggerName: string;
+	addedAt: string;
 	extendedLikesInfo: LikesPostsInfoType;
 };
 
@@ -39,6 +40,7 @@ export type PostsTypeDb = {
 	content: string;
 	bloggerId: ObjectId;
 	bloggerName: string;
+	addedAt: string;
 	extendedLikesInfo: LikesPostsInfoType;
 };
 
@@ -49,6 +51,7 @@ export type PostsTypeMap = {
 	content: string;
 	bloggerId: ObjectId;
 	bloggerName: string;
+	addedAt: string;
 	likes: [];
 };
 

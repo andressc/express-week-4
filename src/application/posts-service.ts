@@ -52,8 +52,8 @@ export class PostsService {
 		);
 
 		const newItems: PostsType[] = items.map((item) => {
-			const { _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo } = item;
-			return { id: _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo };
+			const { _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo } = item;
+			return { id: _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo };
 		});
 
 		return {
@@ -83,8 +83,8 @@ export class PostsService {
 		const post: PostsTypeDb | null = await this.postsRepository.findPostById(id, authUserId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const { _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo } = post;
-		return { id: _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo };
+		const { _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo } = post;
+		return { id: _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo };
 	}
 
 	async deletePost(id: ObjectId): Promise<void> {
@@ -121,6 +121,7 @@ export class PostsService {
 		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(bloggerId);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
+		const addedAt = new Date().toISOString()
 		const newPost: PostsTypeDb = {
 			_id: idCreator(),
 			title,
@@ -128,6 +129,7 @@ export class PostsService {
 			content,
 			bloggerId,
 			bloggerName: blogger.name,
+			addedAt,
 			extendedLikesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
@@ -146,6 +148,7 @@ export class PostsService {
 			content,
 			bloggerId,
 			bloggerName: blogger.name,
+			addedAt,
 			extendedLikesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
@@ -168,13 +171,14 @@ export class PostsService {
 		const post: PostsType = await this.findPostById(postId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
+		const addedAt = new Date().toISOString()
 		const newComment: CommentsTypeDb = {
 			_id: idCreator(),
 			content,
 			userId: user._id,
 			userLogin: user.accountData.login,
 			postId: post.id,
-			addedAt: new Date().toISOString(),
+			addedAt,
 			likesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
@@ -190,7 +194,7 @@ export class PostsService {
 			content,
 			userId: user._id,
 			userLogin: user.accountData.login,
-			addedAt: new Date().toISOString(),
+			addedAt,
 			likesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,

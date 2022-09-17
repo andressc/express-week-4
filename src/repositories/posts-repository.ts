@@ -117,13 +117,14 @@ export class PostsRepository {
 			let myStatus = 'None';
 
 			let newestLikes = [...item.likes]
+				.filter((v: LikeTypeDb) => v.likeStatus === LikeStatus.Like)
 				.sort((a: LikeTypeDb, b: LikeTypeDb) => (a.addedAt > b.addedAt ? -1 : 1))
 				.slice(0, 3)
 				.map((v: LikeTypeDb) => ({
 					addedAt: v.addedAt,
 					userId: v.userId.toString(),
 					login: v.login,
-				}));
+				}))
 
 			item.likes.forEach((it: LikeTypeDb) => {
 				it.likeStatus === LikeStatus.Like && like++;
@@ -139,6 +140,7 @@ export class PostsRepository {
 				content: item.content,
 				bloggerId: item.bloggerId,
 				bloggerName: item.bloggerName,
+				addedAt: item.addedAt,
 				extendedLikesInfo: {
 					likesCount: like,
 					dislikesCount: dislike,
