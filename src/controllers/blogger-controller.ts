@@ -47,7 +47,7 @@ export class BloggerController {
 	) {
 		try {
 			const bloggerPosts: PaginationType<PostsType[]> =
-				await this.bloggersService.findAllPostsBlogger(req.query, stringToObjectId(req.params.id));
+				await this.bloggersService.findAllPostsBlogger(req.query, stringToObjectId(req.params.id), req.user);
 			return res.send(bloggerPosts);
 		} catch (error) {
 			const err = generateErrorCode(error);

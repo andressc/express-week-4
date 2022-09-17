@@ -9,6 +9,7 @@ import { NotFoundError } from '../errors/notFoundError';
 import { BloggersRepository } from '../repositories/bloggers-repository';
 import { PostsService } from './posts-service';
 import { inject, injectable } from 'inversify';
+import {UsersType} from "../types/usersType";
 
 @injectable()
 export class BloggersService {
@@ -47,8 +48,9 @@ export class BloggersService {
 	async findAllPostsBlogger(
 		query: PaginationTypeQuery,
 		id: ObjectId | null = null,
+		authUser?: UsersType | null,
 	): Promise<PaginationType<PostsType[]>> {
-		return this.postsService.findAllPosts(query, id);
+		return this.postsService.findAllPosts(query, id, authUser);
 	}
 
 	async findBloggerById(id: ObjectId): Promise<BloggersType> {
