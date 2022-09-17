@@ -1,15 +1,15 @@
-import {idCreator} from '../helpers/idCreator';
+import { idCreator } from '../helpers/idCreator';
 import bcrypt from 'bcrypt';
-import {PaginationCalc, PaginationType, PaginationTypeQuery} from '../types/paginationType';
-import {UsersType, UsersTypeDb} from '../types/usersType';
-import {generateHash} from '../helpers/generateHash';
-import {generateConfirmationCode} from '../helpers/generateConfirmationCode';
-import {NotFoundError} from '../errors/notFoundError';
-import {ERROR_DB, USER_NOT_FOUND} from '../errors/errorsMessages';
-import {ObjectId} from 'mongodb';
-import {paginationCalc} from '../helpers/paginationCalc';
-import {UsersRepository} from '../repositories/users-repository';
-import {inject, injectable} from 'inversify';
+import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
+import { UsersType, UsersTypeDb } from '../types/usersType';
+import { generateHash } from '../helpers/generateHash';
+import { generateConfirmationCode } from '../helpers/generateConfirmationCode';
+import { NotFoundError } from '../errors/notFoundError';
+import { ERROR_DB, USER_NOT_FOUND } from '../errors/errorsMessages';
+import { ObjectId } from 'mongodb';
+import { paginationCalc } from '../helpers/paginationCalc';
+import { UsersRepository } from '../repositories/users-repository';
+import { inject, injectable } from 'inversify';
 
 @injectable()
 export class UsersService {

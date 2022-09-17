@@ -15,28 +15,37 @@ import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/pa
 import { paginationCalc } from '../helpers/paginationCalc';
 import { CommentsRepository } from '../repositories/comments-repository';
 import { inject, injectable } from 'inversify';
+import { LikesRepository } from '../repositories/likes-repository';
 
 @injectable()
 export class CommentsService {
-	constructor(@inject(CommentsRepository) protected commentsRepository: CommentsRepository) {}
+	constructor(
+		@inject(CommentsRepository) protected commentsRepository: CommentsRepository,
+		@inject(LikesRepository) protected likesRepository: LikesRepository,
+	) {}
 
 	async findAllComments(
 		query: PaginationTypeQuery,
 		id: ObjectId | null = null,
+		authUser?: UsersType | null,
 	): Promise<PaginationType<CommentsType[]>> {
 		const totalCount: number = await this.commentsRepository.getTotalCount(id);
 		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
+
+		let authUserId;
+		if (authUser) authUserId = authUser.id;
 
 		const items: CommentsTypeDb[] = await this.commentsRepository.findAllComments(
 			data.skip,
 			data.pageSize,
 			data.sortBy,
 			id,
+			authUserId,
 		);
 
-		const newItems: CommentsType[] = items.map((item) => {
-			const { _id, content, userId, userLogin, addedAt } = item;
-			return { id: _id, content, userId, userLogin, addedAt };
+		const newItems: CommentsType[] = items.map((item: CommentsTypeDb) => {
+			const { _id, content, userId, userLogin, addedAt, likesInfo } = item;
+			return { id: _id, content, userId, userLogin, addedAt, likesInfo };
 		});
 
 		return {
@@ -48,12 +57,18 @@ export class CommentsService {
 		};
 	}
 
-	async findCommentById(id: ObjectId): Promise<CommentsType> {
-		const comment: CommentsTypeDb | null = await this.commentsRepository.findCommentById(id);
+	async findCommentById(id: ObjectId, authUser?: UsersType | null): Promise<CommentsType> {
+		let authUserId;
+		if (authUser) authUserId = authUser.id;
+
+		const comment: CommentsTypeDb | null = await this.commentsRepository.findCommentById(
+			id,
+			authUserId,
+		);
 		if (!comment) throw new NotFoundError(COMMENT_NOT_FOUND);
 
-		const { _id, content, userId, userLogin, addedAt } = comment;
-		return { id: _id, content, userId, userLogin, addedAt };
+		const { _id, content, userId, userLogin, addedAt, likesInfo } = comment;
+		return { id: _id, content, userId, userLogin, addedAt, likesInfo };
 	}
 
 	async deleteComment(id: ObjectId, authUser: null | UsersType): Promise<void> {

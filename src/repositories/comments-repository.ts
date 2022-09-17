@@ -1,7 +1,8 @@
 import { CommentModel } from '../db/db';
-import { CommentsTypeDb } from '../types/commentsType';
+import { CommentsTypeDb, CommentsTypeMap } from '../types/commentsType';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
+import { LikeStatus, LikeTypeDb } from '../types/LikeType';
 
 @injectable()
 export class CommentsRepository {
@@ -10,17 +11,53 @@ export class CommentsRepository {
 		pageSize: number,
 		sortBy: {},
 		id: ObjectId | null,
+		authUserId?: ObjectId,
 	): Promise<CommentsTypeDb[]> {
 		const searchString = id ? { postId: id } : {};
 
-		return CommentModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
+		const comment: CommentsTypeMap[] = await CommentModel.aggregate([
+			{ $match: searchString },
+			{
+				$graphLookup: {
+					from: 'likes',
+					startWith: '$_id',
+					connectFromField: '_id',
+					connectToField: 'itemId',
+					as: 'likes',
+				},
+			},
+		])
+			.skip(skip)
+			.limit(pageSize)
+			.sort(sortBy);
+
+		//if (!comment) return null;
+		return this.mapComments(comment, authUserId);
+
+		//return CommentModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
-	async findCommentById(id: ObjectId): Promise<CommentsTypeDb | null> {
-		const comment: CommentsTypeDb | null = await CommentModel.findOne({ _id: id });
+	async findCommentById(id: ObjectId, authUserId?: ObjectId): Promise<CommentsTypeDb | null> {
+		//const comment: CommentsTypeDb | null = await CommentModel.findOne({ _id: id });
+
+		const comment: CommentsTypeMap[] = await CommentModel.aggregate([
+			{ $match: { _id: id } },
+			{
+				$graphLookup: {
+					from: 'likes',
+					startWith: '$_id',
+					connectFromField: '_id',
+					connectToField: 'itemId',
+					as: 'likes',
+				},
+			},
+		]);
 
 		if (!comment) return null;
-		return comment;
+
+		const newComment = this.mapComments(comment, authUserId);
+
+		return newComment[0];
 	}
 
 	async deleteComment(id: ObjectId): Promise<boolean> {
@@ -38,6 +75,11 @@ export class CommentsRepository {
 		return result.acknowledged;
 	}
 
+	/*async createLike(id: ObjectId, content: string): Promise<boolean> {
+		const result = await CommentModel.updateOne({ _id: id }, { $set: { content } });
+		return result.acknowledged;
+	}*/
+
 	async createComment(newComment: CommentsTypeDb): Promise<ObjectId | null> {
 		const result = await CommentModel.create(newComment);
 
@@ -48,5 +90,33 @@ export class CommentsRepository {
 	async getTotalCount(id: ObjectId | null): Promise<number> {
 		const searchString = id ? { postId: id } : {};
 		return CommentModel.countDocuments(searchString);
+	}
+
+	private mapComments(comments: CommentsTypeMap[], authUserId?: ObjectId): CommentsTypeDb[] {
+		return comments.map((item: CommentsTypeMap) => {
+			let like = 0;
+			let dislike = 0;
+			let myStatus = 'None';
+			item.likes.forEach((it: LikeTypeDb) => {
+				it.likeStatus === LikeStatus.Like && like++;
+				it.likeStatus === LikeStatus.Dislike && dislike++;
+
+				if (authUserId && it.userId.equals(authUserId)) myStatus = it.likeStatus;
+			});
+
+			return {
+				_id: item._id,
+				content: item.content,
+				userId: item.userId,
+				userLogin: item.userLogin,
+				postId: item.postId,
+				addedAt: item.addedAt,
+				likesInfo: {
+					likesCount: like,
+					dislikesCount: dislike,
+					myStatus,
+				},
+			};
+		});
 	}
 }

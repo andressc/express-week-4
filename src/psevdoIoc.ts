@@ -20,6 +20,8 @@ import { BloggerController } from './controllers/blogger-controller';
 import { CommentController } from './controllers/comment-controller';
 import { TestingController } from './controllers/testing-controller';
 import { UserController } from './controllers/user-controller';
+import { LikesRepository } from './repositories/likes-repository';
+import { LikesService } from './application/likes-service';
 
 /*const bloggersRepository = new BloggersRepository()
 const commentsRepository = new CommentsRepository()
@@ -62,6 +64,7 @@ container.bind<JwtService>(JwtService).to(JwtService);
 container.bind<PostsService>(PostsService).to(PostsService);
 container.bind<RemoteUserIpService>(RemoteUserIpService).to(RemoteUserIpService);
 container.bind<TestingService>(TestingService).to(TestingService);
+container.bind<LikesService>(LikesService).to(LikesService);
 
 container.bind<CommentsRepository>(CommentsRepository).to(CommentsRepository);
 container.bind<BloggersRepository>(BloggersRepository).to(BloggersRepository);
@@ -69,3 +72,4 @@ container.bind<PostsRepository>(PostsRepository).to(PostsRepository);
 container.bind<RefreshTokensRepository>(RefreshTokensRepository).to(RefreshTokensRepository);
 container.bind<RemoteUserIpRepository>(RemoteUserIpRepository).to(RemoteUserIpRepository);
 container.bind<UsersRepository>(UsersRepository).to(UsersRepository);
+container.bind<LikesRepository>(LikesRepository).to(LikesRepository);

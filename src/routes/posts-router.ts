@@ -8,16 +8,19 @@ import { commentsValidationMiddleware } from '../middlewares/validation/comments
 import { objectIdValidationMiddleware } from '../middlewares/validation/object-id-validation-middleware';
 import { container } from '../psevdoIoc';
 import { PostController } from '../controllers/post-controller';
+import { likesValidationMiddleware } from '../middlewares/validation/likes-validation-middleware';
+import { getAuthUserMiddleware } from '../middlewares/security/get-auth-user-middleware';
 
 export const postsRouter = Router({});
 
 const postController = container.resolve(PostController);
 
-postsRouter.get('/', postController.findAllPosts.bind(postController));
+postsRouter.get('/', getAuthUserMiddleware, postController.findAllPosts.bind(postController));
 
 postsRouter.get(
 	'/:id/comments',
 	objectIdValidationMiddleware,
+	getAuthUserMiddleware,
 	errorValidationMiddleware,
 	postController.findAllCommentsOfPost.bind(postController),
 );
@@ -25,6 +28,7 @@ postsRouter.get(
 postsRouter.get(
 	'/:id',
 	objectIdValidationMiddleware,
+	getAuthUserMiddleware,
 	errorValidationMiddleware,
 	postController.findPostById.bind(postController),
 );
@@ -63,4 +67,13 @@ postsRouter.put(
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
 	postController.updatePost.bind(postController),
+);
+
+postsRouter.put(
+	'/:id/like-status',
+	bearerAuthorizationMiddleware,
+	...likesValidationMiddleware,
+	objectIdValidationMiddleware,
+	errorValidationMiddleware,
+	postController.leaveLikePost.bind(postController),
 );

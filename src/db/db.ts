@@ -7,6 +7,7 @@ import { CommentsTypeDb } from '../types/commentsType';
 import { config } from 'dotenv';
 import { RemoteUserIpType } from '../types/remoteUserIpType';
 import { RefreshTokenType } from '../types/authTokenType';
+import { LikeTypeDb } from '../types/LikeType';
 
 config();
 const mongoUri = process.env.mongoURI || 'mongodb://0.0.0.0:19017';
@@ -70,12 +71,23 @@ const refreshTokenSchema = new mongoose.Schema<RefreshTokenType>({
 	refreshToken: String,
 });
 
+const likeSchema = new mongoose.Schema<LikeTypeDb>({
+	_id: ObjectId,
+	type: String,
+	login: String,
+	userId: ObjectId,
+	itemId: ObjectId,
+	likeStatus: String,
+	addedAt: Date,
+});
+
 export const PostModel = mongoose.model('posts', postSchema);
 export const BloggerModel = mongoose.model('bloggers', bloggerSchema);
 export const UserModel = mongoose.model('users', userSchema);
 export const CommentModel = mongoose.model('comments', commentSchema);
 export const RemoteUserIpModel = mongoose.model('ip', remoteUserIpSchema);
 export const RefreshTokenModel = mongoose.model('refreshTokens', refreshTokenSchema);
+export const LikeModel = mongoose.model('likes', likeSchema);
 
 export const runDb = async () => {
 	try {

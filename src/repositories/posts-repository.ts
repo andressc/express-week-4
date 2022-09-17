@@ -1,7 +1,8 @@
-import { PostsType, PostsTypeDb } from '../types/postsType';
+import { PostsTypeDb, PostsTypeMap, PostsTypeUpdate } from '../types/postsType';
 import { PostModel } from '../db/db';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
+import { LikeStatus, LikeTypeDb } from '../types/LikeType';
 
 @injectable()
 export class PostsRepository {
@@ -10,17 +11,54 @@ export class PostsRepository {
 		pageSize: number,
 		sortBy: {},
 		id: ObjectId | null,
+		authUserId?: ObjectId,
 	): Promise<PostsTypeDb[]> {
 		const searchString = id ? { bloggerId: id } : {};
 
-		return PostModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
+		const post: PostsTypeMap[] = await PostModel.aggregate([
+			{ $match: searchString },
+			{
+				$graphLookup: {
+					from: 'likes',
+					startWith: '$_id',
+					connectFromField: '_id',
+					connectToField: 'itemId',
+					as: 'likes',
+				},
+			},
+		])
+			.skip(skip)
+			.limit(pageSize)
+			.sort(sortBy);
+		return this.mapPosts(post, authUserId);
+
+		//return PostModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
-	async findPostById(id: ObjectId): Promise<PostsTypeDb | null> {
-		const post: PostsTypeDb | null = await PostModel.findOne({ _id: id }).lean();
+	async findPostById(id: ObjectId, authUserId?: ObjectId): Promise<PostsTypeDb | null> {
+		const post: PostsTypeMap[] = await PostModel.aggregate([
+			{ $match: { _id: id } },
+			{
+				$graphLookup: {
+					from: 'likes',
+					startWith: '$_id',
+					connectFromField: '_id',
+					connectToField: 'itemId',
+					as: 'likes',
+				},
+			},
+		]);
 
 		if (!post) return null;
-		return post;
+
+		const newPost = this.mapPosts(post, authUserId);
+
+		return newPost[0];
+
+		/*const post: PostsTypeDb | null = await PostModel.findOne({ _id: id }).lean();
+
+		if (!post) return null;
+		return post;*/
 	}
 
 	async deletePost(id: ObjectId): Promise<boolean> {
@@ -40,7 +78,7 @@ export class PostsRepository {
 		return result.deletedCount === 1;
 	}
 
-	async updatePost(id: ObjectId, updateData: PostsType): Promise<boolean> {
+	async updatePost(id: ObjectId, updateData: PostsTypeUpdate): Promise<boolean> {
 		const postInstance = await PostModel.findOne({ _id: id });
 		if (!postInstance) return false;
 
@@ -70,5 +108,44 @@ export class PostsRepository {
 	async getTotalCount(id: ObjectId | null): Promise<number> {
 		const searchString = id ? { bloggerId: id } : {};
 		return PostModel.countDocuments(searchString);
+	}
+
+	private mapPosts(posts: PostsTypeMap[], authUserId?: ObjectId): PostsTypeDb[] {
+		return posts.map((item: PostsTypeMap) => {
+			let like = 0;
+			let dislike = 0;
+			let myStatus = 'None';
+
+			let newestLikes = [...item.likes]
+				.sort((a: LikeTypeDb, b: LikeTypeDb) => (a.addedAt > b.addedAt ? -1 : 1))
+				.slice(0, 3)
+				.map((v: LikeTypeDb) => ({
+					addedAt: v.addedAt,
+					userId: v.userId.toString(),
+					login: v.login,
+				}));
+
+			item.likes.forEach((it: LikeTypeDb) => {
+				it.likeStatus === LikeStatus.Like && like++;
+				it.likeStatus === LikeStatus.Dislike && dislike++;
+
+				if (authUserId && it.userId.equals(authUserId)) myStatus = it.likeStatus;
+			});
+
+			return {
+				_id: item._id,
+				title: item.title,
+				shortDescription: item.shortDescription,
+				content: item.content,
+				bloggerId: item.bloggerId,
+				bloggerName: item.bloggerName,
+				likesInfo: {
+					likesCount: like,
+					dislikesCount: dislike,
+					myStatus,
+					newestLikes,
+				},
+			};
+		});
 	}
 }

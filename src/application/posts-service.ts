@@ -20,6 +20,7 @@ import { inject, injectable } from 'inversify';
 import { BloggersTypeDb } from '../types/bloggersType';
 import { BloggersRepository } from '../repositories/bloggers-repository';
 import { UsersRepository } from '../repositories/users-repository';
+import { LikeStatus } from '../types/LikeType';
 
 @injectable()
 export class PostsService {
@@ -34,20 +35,25 @@ export class PostsService {
 	async findAllPosts(
 		query: PaginationTypeQuery,
 		id: ObjectId | null = null,
+		authUser?: UsersType | null,
 	): Promise<PaginationType<PostsType[]>> {
 		const totalCount: number = await this.postsRepository.getTotalCount(id);
 		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
+
+		let authUserId;
+		if (authUser) authUserId = authUser.id;
 
 		const items: PostsTypeDb[] = await this.postsRepository.findAllPosts(
 			data.skip,
 			data.pageSize,
 			data.sortBy,
 			id,
+			authUserId,
 		);
 
 		const newItems: PostsType[] = items.map((item) => {
-			const { _id, title, shortDescription, content, bloggerId, bloggerName } = item;
-			return { id: _id, title, shortDescription, content, bloggerId, bloggerName };
+			const { _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo } = item;
+			return { id: _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo };
 		});
 
 		return {
@@ -62,19 +68,23 @@ export class PostsService {
 	async findAllCommentsOfPost(
 		id: ObjectId,
 		query: PaginationTypeQuery,
+		authUser?: UsersType | null,
 	): Promise<PaginationType<CommentsType[]>> {
 		const post = await this.findPostById(id);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		return this.commentsService.findAllComments(query, id);
+		return this.commentsService.findAllComments(query, id, authUser);
 	}
 
-	async findPostById(id: ObjectId): Promise<PostsType> {
-		const post: PostsTypeDb | null = await this.postsRepository.findPostById(id);
+	async findPostById(id: ObjectId, authUser?: UsersType | null): Promise<PostsType> {
+		let authUserId;
+		if (authUser) authUserId = authUser.id;
+
+		const post: PostsTypeDb | null = await this.postsRepository.findPostById(id, authUserId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const { _id, title, shortDescription, content, bloggerId, bloggerName } = post;
-		return { id: _id, title, shortDescription, content, bloggerId, bloggerName };
+		const { _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo } = post;
+		return { id: _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo };
 	}
 
 	async deletePost(id: ObjectId): Promise<void> {
@@ -118,6 +128,12 @@ export class PostsService {
 			content,
 			bloggerId,
 			bloggerName: blogger.name,
+			likesInfo: {
+				likesCount: 0,
+				dislikesCount: 0,
+				myStatus: LikeStatus.None,
+				newestLikes: [],
+			},
 		};
 
 		const createdId: ObjectId | null = await this.postsRepository.createPost(newPost);
@@ -130,6 +146,12 @@ export class PostsService {
 			content,
 			bloggerId,
 			bloggerName: blogger.name,
+			likesInfo: {
+				likesCount: 0,
+				dislikesCount: 0,
+				myStatus: LikeStatus.None,
+				newestLikes: [],
+			},
 		};
 	}
 
@@ -153,6 +175,11 @@ export class PostsService {
 			userLogin: user.accountData.login,
 			postId: post.id,
 			addedAt: new Date().toISOString(),
+			likesInfo: {
+				likesCount: 0,
+				dislikesCount: 0,
+				myStatus: LikeStatus.None,
+			},
 		};
 
 		const createdId: ObjectId | null = await this.commentsRepository.createComment(newComment);
@@ -164,6 +191,11 @@ export class PostsService {
 			userId: user._id,
 			userLogin: user.accountData.login,
 			addedAt: new Date().toISOString(),
+			likesInfo: {
+				likesCount: 0,
+				dislikesCount: 0,
+				myStatus: LikeStatus.None,
+			},
 		};
 	}
 }
