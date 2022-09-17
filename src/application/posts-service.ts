@@ -52,8 +52,8 @@ export class PostsService {
 		);
 
 		const newItems: PostsType[] = items.map((item) => {
-			const { _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo } = item;
-			return { id: _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo };
+			const { _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo } = item;
+			return { id: _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo };
 		});
 
 		return {
@@ -83,8 +83,8 @@ export class PostsService {
 		const post: PostsTypeDb | null = await this.postsRepository.findPostById(id, authUserId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const { _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo } = post;
-		return { id: _id, title, shortDescription, content, bloggerId, bloggerName, likesInfo };
+		const { _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo } = post;
+		return { id: _id, title, shortDescription, content, bloggerId, bloggerName, extendedLikesInfo };
 	}
 
 	async deletePost(id: ObjectId): Promise<void> {
@@ -128,7 +128,7 @@ export class PostsService {
 			content,
 			bloggerId,
 			bloggerName: blogger.name,
-			likesInfo: {
+			extendedLikesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
 				myStatus: LikeStatus.None,
@@ -146,7 +146,7 @@ export class PostsService {
 			content,
 			bloggerId,
 			bloggerName: blogger.name,
-			likesInfo: {
+			extendedLikesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
 				myStatus: LikeStatus.None,
