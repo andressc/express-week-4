@@ -29,6 +29,7 @@ const postSchema = new mongoose.Schema<PostsTypeDb>({
 	content: String,
 	bloggerId: { type: ObjectId, required: true },
 	bloggerName: { type: String, required: true },
+	addedAt: Date
 });
 
 const bloggerSchema = new mongoose.Schema<BloggersTypeDb>({
