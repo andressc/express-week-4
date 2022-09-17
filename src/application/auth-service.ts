@@ -162,16 +162,4 @@ export class AuthService {
 		const oldRefreshToken = await this.refreshTokensRepository.createRefreshToken(token);
 		if (!oldRefreshToken) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
 	}
-
-	/*async _testRefreshToken(token: string): Promise<string> {
-		if (!token) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
-
-		const tokenValidation = await refreshTokensRepository.findRefreshToken(token);
-		if (tokenValidation) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
-
-		const authUserId = await jwtService.getUserAuthByToken(token);
-		if (!authUserId) throw new UnauthorizedError(REFRESH_TOKEN_INCORRECT);
-
-		return authUserId.userId
-	}*/
 }

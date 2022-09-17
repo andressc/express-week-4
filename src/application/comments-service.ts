@@ -44,8 +44,7 @@ export class CommentsService {
 		);
 
 		const newItems: CommentsType[] = items.map((item: CommentsTypeDb) => {
-			const { _id, content, userId, userLogin, addedAt, likesInfo } = item;
-			return { id: _id, content, userId, userLogin, addedAt, likesInfo };
+			return this.commentMap(item);
 		});
 
 		return {
@@ -67,8 +66,7 @@ export class CommentsService {
 		);
 		if (!comment) throw new NotFoundError(COMMENT_NOT_FOUND);
 
-		const { _id, content, userId, userLogin, addedAt, likesInfo } = comment;
-		return { id: _id, content, userId, userLogin, addedAt, likesInfo };
+		return this.commentMap(comment);
 	}
 
 	async deleteComment(id: ObjectId, authUser: null | UsersType): Promise<void> {
@@ -95,5 +93,10 @@ export class CommentsService {
 
 		const result = await this.commentsRepository.updateComment(id, content);
 		if (!result) throw new Error(ERROR_DB);
+	}
+
+	private commentMap(item: CommentsTypeDb): CommentsType {
+		const { _id, content, userId, userLogin, addedAt, likesInfo } = item;
+		return { id: _id, content, userId, userLogin, addedAt, likesInfo };
 	}
 }

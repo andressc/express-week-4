@@ -31,8 +31,6 @@ export class PostsRepository {
 			.limit(pageSize)
 			.sort(sortBy);
 		return this.mapPosts(post, authUserId);
-
-		//return PostModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
 	async findPostById(id: ObjectId, authUserId?: ObjectId): Promise<PostsTypeDb | null> {
@@ -54,11 +52,6 @@ export class PostsRepository {
 		const newPost = this.mapPosts(post, authUserId);
 
 		return newPost[0];
-
-		/*const post: PostsTypeDb | null = await PostModel.findOne({ _id: id }).lean();
-
-		if (!post) return null;
-		return post;*/
 	}
 
 	async deletePost(id: ObjectId): Promise<boolean> {
@@ -68,9 +61,6 @@ export class PostsRepository {
 		postInstance.deleteOne();
 
 		return true;
-
-		/*const result = await PostModelClass.deleteOne({ _id: id });
-		return result.deletedCount === 1;*/
 	}
 
 	async deleteAllPosts(): Promise<boolean> {
@@ -90,19 +80,12 @@ export class PostsRepository {
 		await postInstance.save();
 
 		return true;
-
-		/*const result = await PostModelClass.updateOne({ _id: id }, { $set: updateData });
-		return result.acknowledged;*/
 	}
 
 	async createPost(newPost: PostsTypeDb): Promise<ObjectId | null> {
 		const postInstance = new PostModel(newPost);
 		await postInstance.save();
 		return postInstance.id;
-
-		/*const result = await PostModelClass.create(newPost);
-		if (!result.id) return null;
-		return result.id;*/
 	}
 
 	async getTotalCount(id: ObjectId | null): Promise<number> {
@@ -124,7 +107,7 @@ export class PostsRepository {
 					addedAt: v.addedAt,
 					userId: v.userId.toString(),
 					login: v.login,
-				}))
+				}));
 
 			item.likes.forEach((it: LikeTypeDb) => {
 				it.likeStatus === LikeStatus.Like && like++;

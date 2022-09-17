@@ -9,7 +9,7 @@ import { NotFoundError } from '../errors/notFoundError';
 import { BloggersRepository } from '../repositories/bloggers-repository';
 import { PostsService } from './posts-service';
 import { inject, injectable } from 'inversify';
-import {UsersType} from "../types/usersType";
+import { UsersType } from '../types/usersType';
 
 @injectable()
 export class BloggersService {
@@ -32,8 +32,7 @@ export class BloggersService {
 		);
 
 		const newItems: BloggersType[] = items.map((item) => {
-			const { _id, name, youtubeUrl } = item;
-			return { id: _id, name, youtubeUrl };
+			return this.bloggerMap(item);
 		});
 
 		return {
@@ -57,8 +56,7 @@ export class BloggersService {
 		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(id);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
-		const { _id, name, youtubeUrl } = blogger;
-		return { id: _id, name, youtubeUrl };
+		return this.bloggerMap(blogger);
 	}
 
 	async deleteBlogger(id: ObjectId): Promise<void> {
@@ -92,5 +90,10 @@ export class BloggersService {
 		content: string,
 	): Promise<PostsType> {
 		return this.postsService.createPost(title, shortDescription, content, id);
+	}
+
+	private bloggerMap(item: BloggersTypeDb): BloggersType {
+		const { _id, name, youtubeUrl } = item;
+		return { id: _id, name, youtubeUrl };
 	}
 }

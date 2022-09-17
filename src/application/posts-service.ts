@@ -52,8 +52,7 @@ export class PostsService {
 		);
 
 		const newItems: PostsType[] = items.map((item) => {
-			const { _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo } = item;
-			return { id: _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo };
+			return this.postMap(item);
 		});
 
 		return {
@@ -83,8 +82,7 @@ export class PostsService {
 		const post: PostsTypeDb | null = await this.postsRepository.findPostById(id, authUserId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const { _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo } = post;
-		return { id: _id, title, shortDescription, content, bloggerId, bloggerName, addedAt, extendedLikesInfo };
+		return this.postMap(post);
 	}
 
 	async deletePost(id: ObjectId): Promise<void> {
@@ -121,7 +119,7 @@ export class PostsService {
 		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(bloggerId);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
-		const addedAt = new Date().toISOString()
+		const addedAt = new Date().toISOString();
 		const newPost: PostsTypeDb = {
 			_id: idCreator(),
 			title,
@@ -171,7 +169,7 @@ export class PostsService {
 		const post: PostsType = await this.findPostById(postId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const addedAt = new Date().toISOString()
+		const addedAt = new Date().toISOString();
 		const newComment: CommentsTypeDb = {
 			_id: idCreator(),
 			content,
@@ -200,6 +198,29 @@ export class PostsService {
 				dislikesCount: 0,
 				myStatus: LikeStatus.None,
 			},
+		};
+	}
+
+	private postMap(item: PostsTypeDb): PostsType {
+		const {
+			_id,
+			title,
+			shortDescription,
+			content,
+			bloggerId,
+			bloggerName,
+			addedAt,
+			extendedLikesInfo,
+		} = item;
+		return {
+			id: _id,
+			title,
+			shortDescription,
+			content,
+			bloggerId,
+			bloggerName,
+			addedAt,
+			extendedLikesInfo,
 		};
 	}
 }

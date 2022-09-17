@@ -31,15 +31,10 @@ export class CommentsRepository {
 			.limit(pageSize)
 			.sort(sortBy);
 
-		//if (!comment) return null;
 		return this.mapComments(comment, authUserId);
-
-		//return CommentModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
 	}
 
 	async findCommentById(id: ObjectId, authUserId?: ObjectId): Promise<CommentsTypeDb | null> {
-		//const comment: CommentsTypeDb | null = await CommentModel.findOne({ _id: id });
-
 		const comment: CommentsTypeMap[] = await CommentModel.aggregate([
 			{ $match: { _id: id } },
 			{
@@ -54,7 +49,6 @@ export class CommentsRepository {
 		]);
 
 		if (!comment) return null;
-
 		const newComment = this.mapComments(comment, authUserId);
 
 		return newComment[0];
@@ -74,11 +68,6 @@ export class CommentsRepository {
 		const result = await CommentModel.updateOne({ _id: id }, { $set: { content } });
 		return result.acknowledged;
 	}
-
-	/*async createLike(id: ObjectId, content: string): Promise<boolean> {
-		const result = await CommentModel.updateOne({ _id: id }, { $set: { content } });
-		return result.acknowledged;
-	}*/
 
 	async createComment(newComment: CommentsTypeDb): Promise<ObjectId | null> {
 		const result = await CommentModel.create(newComment);

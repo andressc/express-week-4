@@ -6,7 +6,7 @@ import { postsValidationMiddleware } from '../middlewares/validation/posts-valid
 import { objectIdValidationMiddleware } from '../middlewares/validation/object-id-validation-middleware';
 import { container } from '../psevdoIoc';
 import { BloggerController } from '../controllers/blogger-controller';
-import {getAuthUserMiddleware} from "../middlewares/security/get-auth-user-middleware";
+import { getAuthUserMiddleware } from '../middlewares/security/get-auth-user-middleware';
 
 export const bloggersRouter = Router({});
 
