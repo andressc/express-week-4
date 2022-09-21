@@ -84,7 +84,6 @@ export class PostController {
 
 			return res.status(HttpStatusCode.CREATED).send(post);
 		} catch (error) {
-			console.log(error);
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}

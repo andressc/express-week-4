@@ -7,7 +7,6 @@ const usersService = container.resolve(UsersService);
 export const isUserExistsMiddleware = [
 	body('email').custom(async (value) => {
 		const user = await usersService.findUserByEmail(value);
-		console.log(user);
 
 		if (user) throw new Error('user already exists');
 		return true;
