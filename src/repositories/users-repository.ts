@@ -60,8 +60,8 @@ export class UsersRepository {
 	async createUser(newUser: UsersTypeDb): Promise<ObjectId | null> {
 		const result = await UserModel.create(newUser);
 
-		if (!result.id) return null;
-		return result.id;
+		if (!result._id) return null;
+		return result._id;
 	}
 
 	async getTotalCount(): Promise<number> {

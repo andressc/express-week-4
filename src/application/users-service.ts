@@ -56,7 +56,7 @@ export class UsersService {
 		login: string,
 		email: string,
 		password: string,
-	): Promise<{ id: ObjectId; login: string }> {
+	): Promise<{ id: string; login: string }> {
 		const passwordSalt = await bcrypt.genSalt(10);
 		const passwordHash = await generateHash(password, passwordSalt);
 
@@ -73,7 +73,7 @@ export class UsersService {
 		const createdId: ObjectId | null = await this.usersRepository.createUser(newUser);
 		if (!createdId) throw new Error(ERROR_DB);
 
-		return { id: createdId, login };
+		return { id: createdId.toString(), login };
 	}
 
 	async deleteUser(id: ObjectId): Promise<void> {

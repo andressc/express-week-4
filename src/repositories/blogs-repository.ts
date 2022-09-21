@@ -1,10 +1,10 @@
 import { BloggerModel } from '../db/db';
-import { BloggersTypeDb } from '../types/bloggersType';
+import { BloggersTypeDb } from '../types/blogsType';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
 
 @injectable()
-export class BloggersRepository {
+export class BlogsRepository {
 	async findAllBloggers(
 		skip: number,
 		pageSize: number,

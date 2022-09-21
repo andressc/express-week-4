@@ -1,4 +1,4 @@
-import { BloggersRepository } from '../repositories/bloggers-repository';
+import { BlogsRepository } from '../repositories/blogs-repository';
 import { PostsRepository } from '../repositories/posts-repository';
 import { UsersRepository } from '../repositories/users-repository';
 import { CommentsRepository } from '../repositories/comments-repository';
@@ -10,7 +10,7 @@ import { LikesRepository } from '../repositories/likes-repository';
 @injectable()
 export class TestingService {
 	constructor(
-		@inject(BloggersRepository) protected bloggersRepository: BloggersRepository,
+		@inject(BlogsRepository) protected bloggersRepository: BlogsRepository,
 		@inject(CommentsRepository) protected commentsRepository: CommentsRepository,
 		@inject(PostsRepository) protected postsRepository: PostsRepository,
 		@inject(RefreshTokensRepository) protected refreshTokensRepository: RefreshTokensRepository,

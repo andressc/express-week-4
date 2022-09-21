@@ -1,4 +1,4 @@
-import { BloggersType, BloggersTypeDb } from '../types/bloggersType';
+import { BlogsType, BloggersTypeDb } from '../types/blogsType';
 import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/paginationType';
 import { PostsType } from '../types/postsType';
 import { idCreator } from '../helpers/idCreator';
@@ -6,19 +6,19 @@ import { ObjectId } from 'mongodb';
 import { paginationCalc } from '../helpers/paginationCalc';
 import { BLOGGER_NOT_FOUND, ERROR_DB } from '../errors/errorsMessages';
 import { NotFoundError } from '../errors/notFoundError';
-import { BloggersRepository } from '../repositories/bloggers-repository';
+import { BlogsRepository } from '../repositories/blogs-repository';
 import { PostsService } from './posts-service';
 import { inject, injectable } from 'inversify';
 import { UsersType } from '../types/usersType';
 
 @injectable()
-export class BloggersService {
+export class BlogsService {
 	constructor(
-		@inject(BloggersRepository) protected bloggersRepository: BloggersRepository,
+		@inject(BlogsRepository) protected bloggersRepository: BlogsRepository,
 		@inject(PostsService) protected postsService: PostsService,
 	) {}
 
-	async findAllBloggers(query: PaginationTypeQuery): Promise<PaginationType<BloggersType[]>> {
+	async findAllBloggers(query: PaginationTypeQuery): Promise<PaginationType<BlogsType[]>> {
 		const searchNameTerm = query.searchNameTerm;
 
 		const totalCount: number = await this.bloggersRepository.getTotalCount(searchNameTerm);
@@ -31,7 +31,7 @@ export class BloggersService {
 			searchNameTerm,
 		);
 
-		const newItems: BloggersType[] = items.map((item) => {
+		const newItems: BlogsType[] = items.map((item) => {
 			return this.bloggerMap(item);
 		});
 
@@ -52,7 +52,7 @@ export class BloggersService {
 		return this.postsService.findAllPosts(query, id, authUser);
 	}
 
-	async findBloggerById(id: ObjectId): Promise<BloggersType> {
+	async findBloggerById(id: ObjectId): Promise<BlogsType> {
 		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(id);
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
@@ -65,7 +65,7 @@ export class BloggersService {
 	}
 
 	async updateBlogger(id: ObjectId, name: string, youtubeUrl: string): Promise<void> {
-		const blogger: BloggersType = await this.findBloggerById(id);
+		const blogger: BlogsType = await this.findBloggerById(id);
 
 		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
 
@@ -73,7 +73,7 @@ export class BloggersService {
 		if (!result) throw new Error(ERROR_DB);
 	}
 
-	async createBlogger(name: string, youtubeUrl: string): Promise<BloggersType> {
+	async createBlogger(name: string, youtubeUrl: string): Promise<BlogsType> {
 		const newBlogger: BloggersTypeDb = { _id: idCreator(), name, youtubeUrl };
 
 		const createdId: ObjectId | null = await this.bloggersRepository.createBlogger(newBlogger);
@@ -92,7 +92,7 @@ export class BloggersService {
 		return this.postsService.createPost(title, shortDescription, content, id);
 	}
 
-	private bloggerMap(item: BloggersTypeDb): BloggersType {
+	private bloggerMap(item: BloggersTypeDb): BlogsType {
 		const { _id, name, youtubeUrl } = item;
 		return { id: _id, name, youtubeUrl };
 	}

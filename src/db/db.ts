@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
-import { BloggersTypeDb } from '../types/bloggersType';
+import { BloggersTypeDb } from '../types/blogsType';
 import { PostsTypeDb } from '../types/postsType';
 import { UsersTypeDb } from '../types/usersType';
 import { CommentsTypeDb } from '../types/commentsType';

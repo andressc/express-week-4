@@ -1,7 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import { bloggersRouter } from './routes/bloggers-router';
+import { blogsRouter } from './routes/blogs-router';
 import { postsRouter } from './routes/posts-router';
 import { runDb } from './db/db';
 import { config } from 'dotenv';
@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use('/bloggers', bloggersRouter);
+app.use('/bloggers', blogsRouter);
 app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
 app.use('/testing', testingRouter);

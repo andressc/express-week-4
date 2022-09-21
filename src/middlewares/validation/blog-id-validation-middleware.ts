@@ -1,11 +1,11 @@
 import { body } from 'express-validator';
-import { BloggersService } from '../../application/bloggers-service';
+import { BlogsService } from '../../application/blogs-service';
 import { stringToObjectId } from '../../helpers/stringToObjectId';
 import { container } from '../../psevdoIoc';
 
-const bloggersService = container.resolve(BloggersService);
+const bloggersService = container.resolve(BlogsService);
 
-export const bloggerIdValidationMiddleware = [
+export const blogIdValidationMiddleware = [
 	body('bloggerId')
 		.notEmpty()
 		.withMessage('must not be empty')

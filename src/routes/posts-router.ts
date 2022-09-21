@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { errorValidationMiddleware } from '../middlewares/validation/error-validation-middleware';
 import { postsValidationMiddleware } from '../middlewares/validation/posts-validation-middleware';
 import { basicAuthorizationMiddleware } from '../middlewares/auth/basic-authorization-middleware';
-import { bloggerIdValidationMiddleware } from '../middlewares/validation/blogger-id-validation-middleware';
+import { blogIdValidationMiddleware } from '../middlewares/validation/blog-id-validation-middleware';
 import { bearerAuthorizationMiddleware } from '../middlewares/auth/bearer-authorization-middleware';
 import { commentsValidationMiddleware } from '../middlewares/validation/comments-validation-middleware';
 import { objectIdValidationMiddleware } from '../middlewares/validation/object-id-validation-middleware';
@@ -45,7 +45,7 @@ postsRouter.post(
 	'/',
 	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
-	...bloggerIdValidationMiddleware,
+	...blogIdValidationMiddleware,
 	errorValidationMiddleware,
 	postController.createPost.bind(postController),
 );
@@ -63,7 +63,7 @@ postsRouter.put(
 	'/:id',
 	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
-	...bloggerIdValidationMiddleware,
+	...blogIdValidationMiddleware,
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
 	postController.updatePost.bind(postController),

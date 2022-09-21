@@ -1,27 +1,27 @@
 import { Router } from 'express';
 import { errorValidationMiddleware } from '../middlewares/validation/error-validation-middleware';
-import { bloggersValidationMiddleware } from '../middlewares/validation/bloggers-validation-middleware';
+import { blogsValidationMiddleware } from '../middlewares/validation/blogs-validation-middleware';
 import { basicAuthorizationMiddleware } from '../middlewares/auth/basic-authorization-middleware';
 import { postsValidationMiddleware } from '../middlewares/validation/posts-validation-middleware';
 import { objectIdValidationMiddleware } from '../middlewares/validation/object-id-validation-middleware';
 import { container } from '../psevdoIoc';
-import { BloggerController } from '../controllers/blogger-controller';
+import { BlogController } from '../controllers/blog-controller';
 import { getAuthUserMiddleware } from '../middlewares/security/get-auth-user-middleware';
 
-export const bloggersRouter = Router({});
+export const blogsRouter = Router({});
 
-const bloggerController = container.resolve(BloggerController);
+const bloggerController = container.resolve(BlogController);
 
-bloggersRouter.get('/', bloggerController.findAllBloggers.bind(bloggerController));
+blogsRouter.get('/', bloggerController.findAllBloggers.bind(bloggerController));
 
-bloggersRouter.get(
+blogsRouter.get(
 	'/:id',
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
 	bloggerController.findBloggerById.bind(bloggerController),
 );
 
-bloggersRouter.get(
+blogsRouter.get(
 	'/:id/posts',
 	objectIdValidationMiddleware,
 	getAuthUserMiddleware,
@@ -29,7 +29,7 @@ bloggersRouter.get(
 	bloggerController.findPostsBlogger.bind(bloggerController),
 );
 
-bloggersRouter.delete(
+blogsRouter.delete(
 	'/:id',
 	basicAuthorizationMiddleware,
 	objectIdValidationMiddleware,
@@ -37,15 +37,15 @@ bloggersRouter.delete(
 	bloggerController.deleteBlogger.bind(bloggerController),
 );
 
-bloggersRouter.post(
+blogsRouter.post(
 	'/',
 	basicAuthorizationMiddleware,
-	...bloggersValidationMiddleware,
+	...blogsValidationMiddleware,
 	errorValidationMiddleware,
 	bloggerController.createBlogger.bind(bloggerController),
 );
 
-bloggersRouter.post(
+blogsRouter.post(
 	'/:id/posts',
 	basicAuthorizationMiddleware,
 	...postsValidationMiddleware,
@@ -54,10 +54,10 @@ bloggersRouter.post(
 	bloggerController.createBloggerPost.bind(bloggerController),
 );
 
-bloggersRouter.put(
+blogsRouter.put(
 	'/:id',
 	basicAuthorizationMiddleware,
-	...bloggersValidationMiddleware,
+	...blogsValidationMiddleware,
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
 	bloggerController.updateBlogger.bind(bloggerController),

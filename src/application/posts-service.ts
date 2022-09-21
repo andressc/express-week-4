@@ -17,8 +17,8 @@ import { PostsRepository } from '../repositories/posts-repository';
 import { CommentsRepository } from '../repositories/comments-repository';
 import { CommentsService } from './comments-service';
 import { inject, injectable } from 'inversify';
-import { BloggersTypeDb } from '../types/bloggersType';
-import { BloggersRepository } from '../repositories/bloggers-repository';
+import { BloggersTypeDb } from '../types/blogsType';
+import { BlogsRepository } from '../repositories/blogs-repository';
 import { UsersRepository } from '../repositories/users-repository';
 import { LikeStatus } from '../types/LikeType';
 
@@ -27,7 +27,7 @@ export class PostsService {
 	constructor(
 		@inject(PostsRepository) protected postsRepository: PostsRepository,
 		@inject(CommentsRepository) protected commentsRepository: CommentsRepository,
-		@inject(BloggersRepository) protected bloggersRepository: BloggersRepository,
+		@inject(BlogsRepository) protected bloggersRepository: BlogsRepository,
 		@inject(UsersRepository) protected usersRepository: UsersRepository,
 		@inject(CommentsService) protected commentsService: CommentsService,
 	) {}

@@ -1,11 +1,11 @@
-import { BloggersService } from '../application/bloggers-service';
+import { BlogsService } from '../application/blogs-service';
 import { Request, Response } from 'express';
 import {
 	PaginationType,
 	PaginationTypeQuery,
 	PaginationTypeQueryRequest,
 } from '../types/paginationType';
-import { BloggersType } from '../types/bloggersType';
+import { BlogsType } from '../types/blogsType';
 import { generateErrorCode } from '../helpers/generateErrorCode';
 import { stringToObjectId } from '../helpers/stringToObjectId';
 import { PostsType } from '../types/postsType';
@@ -13,12 +13,12 @@ import { HttpStatusCode } from '../types/StatusCode';
 import { inject, injectable } from 'inversify';
 
 @injectable()
-export class BloggerController {
-	constructor(@inject(BloggersService) protected bloggersService: BloggersService) {}
+export class BlogController {
+	constructor(@inject(BlogsService) protected bloggersService: BlogsService) {}
 
 	async findAllBloggers(req: Request<{}, {}, {}, PaginationTypeQuery>, res: Response) {
 		try {
-			const bloggers: PaginationType<BloggersType[]> = await this.bloggersService.findAllBloggers(
+			const bloggers: PaginationType<BlogsType[]> = await this.bloggersService.findAllBloggers(
 				req.query,
 			);
 			return res.send(bloggers);
@@ -30,7 +30,7 @@ export class BloggerController {
 
 	async findBloggerById(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
 		try {
-			const blogger: BloggersType = await this.bloggersService.findBloggerById(
+			const blogger: BlogsType = await this.bloggersService.findBloggerById(
 				stringToObjectId(req.params.id),
 			);
 
@@ -74,7 +74,7 @@ export class BloggerController {
 		res: Response,
 	) {
 		try {
-			const blogger: BloggersType = await this.bloggersService.createBlogger(
+			const blogger: BlogsType = await this.bloggersService.createBlogger(
 				req.body.name,
 				req.body.youtubeUrl,
 			);

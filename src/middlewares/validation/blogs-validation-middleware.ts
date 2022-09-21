@@ -1,6 +1,6 @@
 import { body } from 'express-validator';
 
-export const bloggersValidationMiddleware = [
+export const blogsValidationMiddleware = [
 	body('name')
 		.trim()
 		.isLength({ max: 15 })
