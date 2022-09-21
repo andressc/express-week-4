@@ -23,7 +23,7 @@ import { UserController } from './controllers/user-controller';
 import { LikesRepository } from './repositories/likes-repository';
 import { LikesService } from './application/likes-service';
 
-/*const bloggersRepository = new BloggersRepository()
+/*const blogsRepository = new BlogsRepository()
 const commentsRepository = new CommentsRepository()
 const postsRepository = new PostsRepository()
 const refreshTokensRepository = new RefreshTokensRepository()
@@ -36,9 +36,9 @@ const commentsService = new CommentsService(commentsRepository)
 export const remoteUserIpService = new RemoteUserIpService(remoteUserIpRepository)
 
 const postsService = new PostsService(postsRepository, commentsRepository, userService, commentsService)
-const bloggersService = new BloggersService(bloggersRepository, postsService)
+const blogsService = new BlogsService(blogsRepository, postsService)
 const testingService = new TestingService(
-    bloggersRepository,
+    blogsRepository,
     commentsRepository,
     postsRepository,
     refreshTokensRepository,

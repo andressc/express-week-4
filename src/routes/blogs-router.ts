@@ -10,15 +10,15 @@ import { getAuthUserMiddleware } from '../middlewares/security/get-auth-user-mid
 
 export const blogsRouter = Router({});
 
-const bloggerController = container.resolve(BlogController);
+const blogController = container.resolve(BlogController);
 
-blogsRouter.get('/', bloggerController.findAllBloggers.bind(bloggerController));
+blogsRouter.get('/', blogController.findAllBlogs.bind(blogController));
 
 blogsRouter.get(
 	'/:id',
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	bloggerController.findBloggerById.bind(bloggerController),
+	blogController.findBlogById.bind(blogController),
 );
 
 blogsRouter.get(
@@ -26,7 +26,7 @@ blogsRouter.get(
 	objectIdValidationMiddleware,
 	getAuthUserMiddleware,
 	errorValidationMiddleware,
-	bloggerController.findPostsBlogger.bind(bloggerController),
+	blogController.findPostsBlog.bind(blogController),
 );
 
 blogsRouter.delete(
@@ -34,7 +34,7 @@ blogsRouter.delete(
 	basicAuthorizationMiddleware,
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	bloggerController.deleteBlogger.bind(bloggerController),
+	blogController.deleteBlog.bind(blogController),
 );
 
 blogsRouter.post(
@@ -42,7 +42,7 @@ blogsRouter.post(
 	basicAuthorizationMiddleware,
 	...blogsValidationMiddleware,
 	errorValidationMiddleware,
-	bloggerController.createBlogger.bind(bloggerController),
+	blogController.createBlog.bind(blogController),
 );
 
 blogsRouter.post(
@@ -51,7 +51,7 @@ blogsRouter.post(
 	...postsValidationMiddleware,
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	bloggerController.createBloggerPost.bind(bloggerController),
+	blogController.createBlogPost.bind(blogController),
 );
 
 blogsRouter.put(
@@ -60,5 +60,5 @@ blogsRouter.put(
 	...blogsValidationMiddleware,
 	objectIdValidationMiddleware,
 	errorValidationMiddleware,
-	bloggerController.updateBlogger.bind(bloggerController),
+	blogController.updateBlog.bind(blogController),
 );

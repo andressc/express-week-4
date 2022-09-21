@@ -10,7 +10,7 @@ import { LikesRepository } from '../repositories/likes-repository';
 @injectable()
 export class TestingService {
 	constructor(
-		@inject(BlogsRepository) protected bloggersRepository: BlogsRepository,
+		@inject(BlogsRepository) protected blogsRepository: BlogsRepository,
 		@inject(CommentsRepository) protected commentsRepository: CommentsRepository,
 		@inject(PostsRepository) protected postsRepository: PostsRepository,
 		@inject(RefreshTokensRepository) protected refreshTokensRepository: RefreshTokensRepository,
@@ -20,7 +20,7 @@ export class TestingService {
 	) {}
 
 	async deleteAllData(): Promise<void> {
-		await this.bloggersRepository.deleteAllBloggers();
+		await this.blogsRepository.deleteAllBlogs();
 		await this.postsRepository.deleteAllPosts();
 		await this.usersRepository.deleteAllUsers();
 		await this.commentsRepository.deleteAllComments();

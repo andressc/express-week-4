@@ -10,6 +10,7 @@ import { ObjectId } from 'mongodb';
 import { paginationCalc } from '../helpers/paginationCalc';
 import { UsersRepository } from '../repositories/users-repository';
 import { inject, injectable } from 'inversify';
+import {dateCreator} from "../helpers/dateCreator";
 
 @injectable()
 export class UsersService {
@@ -18,20 +19,22 @@ export class UsersService {
 	async findAllUsers(
 		query: PaginationTypeQuery,
 	): Promise<PaginationType<Array<{ id: ObjectId; login: string }>>> {
-		const totalCount: number = await this.usersRepository.getTotalCount();
+		const searchLoginTerm = query.searchLoginTerm;
+		const searchEmailTerm = query.searchEmailTerm;
+
+		const totalCount: number = await this.usersRepository.getTotalCount(searchLoginTerm, searchEmailTerm);
 		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
 
 		const items: UsersTypeDb[] = await this.usersRepository.findAllUsers(
 			data.skip,
 			data.pageSize,
 			data.sortBy,
+			searchLoginTerm,
+			searchEmailTerm,
 		);
 
 		const newItems: Array<{ id: ObjectId; login: string }> = items.map((item) => {
-			const {
-				_id,
-				accountData: { login },
-			} = item;
+			const {_id, accountData: { login }} = item;
 			return { id: _id, login };
 		});
 
@@ -48,8 +51,8 @@ export class UsersService {
 		const user: UsersTypeDb | null = await this.usersRepository.findUserById(id);
 		if (!user) throw new NotFoundError(USER_NOT_FOUND);
 
-		const { _id, emailConfirmation, accountData } = user;
-		return { id: _id, emailConfirmation, accountData };
+		const { _id, emailConfirmation, accountData, createdAt } = user;
+		return { id: _id, emailConfirmation, accountData, createdAt };
 	}
 
 	async createUser(
@@ -68,6 +71,7 @@ export class UsersService {
 				passwordHash,
 			},
 			emailConfirmation: generateConfirmationCode(true),
+			createdAt: dateCreator()
 		};
 
 		const createdId: ObjectId | null = await this.usersRepository.createUser(newUser);

@@ -12,8 +12,8 @@ export type CommentsType = {
 	userId: ObjectId;
 	userLogin: string;
 	postId?: ObjectId;
-	addedAt: string;
-	likesInfo: likesCommentsInfoType;
+	createdAt: string;
+	//likesInfo: likesCommentsInfoType;
 };
 
 export type CommentsTypeDb = {
@@ -22,8 +22,8 @@ export type CommentsTypeDb = {
 	userId: ObjectId;
 	userLogin: string;
 	postId?: ObjectId;
-	addedAt: string;
-	likesInfo: likesCommentsInfoType;
+	createdAt: string;
+	//likesInfo: likesCommentsInfoType;
 };
 
 export type CommentsTypeMap = {
@@ -32,6 +32,6 @@ export type CommentsTypeMap = {
 	userId: ObjectId;
 	userLogin: string;
 	postId?: ObjectId;
-	addedAt: string;
-	likes: [];
+	createdAt: string;
+	//likes: [];
 };

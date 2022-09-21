@@ -2,7 +2,6 @@ import { PostsTypeDb, PostsTypeMap, PostsTypeUpdate } from '../types/postsType';
 import { PostModel } from '../db/db';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
-import { LikeStatus, LikeTypeDb } from '../types/LikeType';
 
 @injectable()
 export class PostsRepository {
@@ -13,7 +12,7 @@ export class PostsRepository {
 		id: ObjectId | null,
 		authUserId?: ObjectId,
 	): Promise<PostsTypeDb[]> {
-		const searchString = id ? { bloggerId: id } : {};
+		const searchString = id ? { blogId: id } : {};
 
 		const post: PostsTypeMap[] = await PostModel.aggregate([
 			{ $match: searchString },
@@ -75,8 +74,8 @@ export class PostsRepository {
 		postInstance.title = updateData.title;
 		postInstance.shortDescription = updateData.shortDescription;
 		postInstance.content = updateData.content;
-		postInstance.bloggerId = updateData.bloggerId;
-		postInstance.bloggerName = updateData.bloggerName;
+		postInstance.blogId = updateData.blogId;
+		postInstance.blogName = updateData.blogName;
 		await postInstance.save();
 
 		return true;
@@ -89,13 +88,13 @@ export class PostsRepository {
 	}
 
 	async getTotalCount(id: ObjectId | null): Promise<number> {
-		const searchString = id ? { bloggerId: id } : {};
+		const searchString = id ? { blogId: id } : {};
 		return PostModel.countDocuments(searchString);
 	}
 
 	private mapPosts(posts: PostsTypeMap[], authUserId?: ObjectId): PostsTypeDb[] {
 		return posts.map((item: PostsTypeMap) => {
-			let like = 0;
+			/*let like = 0;
 			let dislike = 0;
 			let myStatus = 'None';
 
@@ -114,22 +113,22 @@ export class PostsRepository {
 				it.likeStatus === LikeStatus.Dislike && dislike++;
 
 				if (authUserId && it.userId.equals(authUserId)) myStatus = it.likeStatus;
-			});
+			});*/
 
 			return {
 				_id: item._id,
 				title: item.title,
 				shortDescription: item.shortDescription,
 				content: item.content,
-				bloggerId: item.bloggerId,
-				bloggerName: item.bloggerName,
-				addedAt: item.addedAt,
-				extendedLikesInfo: {
+				blogId: item.blogId,
+				blogName: item.blogName,
+				createdAt: item.createdAt,
+				/*extendedLikesInfo: {
 					likesCount: like,
 					dislikesCount: dislike,
 					myStatus,
 					newestLikes,
-				},
+				},*/
 			};
 		});
 	}

@@ -2,7 +2,6 @@ import { CommentModel } from '../db/db';
 import { CommentsTypeDb, CommentsTypeMap } from '../types/commentsType';
 import { ObjectId } from 'mongodb';
 import { injectable } from 'inversify';
-import { LikeStatus, LikeTypeDb } from '../types/LikeType';
 
 @injectable()
 export class CommentsRepository {
@@ -83,7 +82,7 @@ export class CommentsRepository {
 
 	private mapComments(comments: CommentsTypeMap[], authUserId?: ObjectId): CommentsTypeDb[] {
 		return comments.map((item: CommentsTypeMap) => {
-			let like = 0;
+			/*let like = 0;
 			let dislike = 0;
 			let myStatus = 'None';
 			item.likes.forEach((it: LikeTypeDb) => {
@@ -91,7 +90,7 @@ export class CommentsRepository {
 				it.likeStatus === LikeStatus.Dislike && dislike++;
 
 				if (authUserId && it.userId.equals(authUserId)) myStatus = it.likeStatus;
-			});
+			});*/
 
 			return {
 				_id: item._id,
@@ -99,12 +98,12 @@ export class CommentsRepository {
 				userId: item.userId,
 				userLogin: item.userLogin,
 				postId: item.postId,
-				addedAt: item.addedAt,
-				likesInfo: {
+				createdAt: item.createdAt,
+				/*likesInfo: {
 					likesCount: like,
 					dislikesCount: dislike,
 					myStatus,
-				},
+				},*/
 			};
 		});
 	}

@@ -5,7 +5,7 @@ import { UsersType, UsersTypeDb } from '../types/usersType';
 import { CommentsType, CommentsTypeDb } from '../types/commentsType';
 import { ObjectId } from 'mongodb';
 import {
-	BLOGGER_NOT_FOUND,
+	BLOG_NOT_FOUND,
 	ERROR_DB,
 	POST_NOT_FOUND,
 	USER_NOT_FOUND,
@@ -17,17 +17,17 @@ import { PostsRepository } from '../repositories/posts-repository';
 import { CommentsRepository } from '../repositories/comments-repository';
 import { CommentsService } from './comments-service';
 import { inject, injectable } from 'inversify';
-import { BloggersTypeDb } from '../types/blogsType';
+import { BlogsTypeDb } from '../types/blogsType';
 import { BlogsRepository } from '../repositories/blogs-repository';
 import { UsersRepository } from '../repositories/users-repository';
-import { LikeStatus } from '../types/LikeType';
+import {dateCreator} from "../helpers/dateCreator";
 
 @injectable()
 export class PostsService {
 	constructor(
 		@inject(PostsRepository) protected postsRepository: PostsRepository,
 		@inject(CommentsRepository) protected commentsRepository: CommentsRepository,
-		@inject(BlogsRepository) protected bloggersRepository: BlogsRepository,
+		@inject(BlogsRepository) protected blogsRepository: BlogsRepository,
 		@inject(UsersRepository) protected usersRepository: UsersRepository,
 		@inject(CommentsService) protected commentsService: CommentsService,
 	) {}
@@ -92,20 +92,20 @@ export class PostsService {
 
 	async updatePost(
 		id: ObjectId,
-		{ title, shortDescription, content, bloggerId }: PostsTypeReq,
+		{ title, shortDescription, content, blogId }: PostsTypeReq,
 	): Promise<void> {
-		const bloggerIdObjectId = stringToObjectId(bloggerId);
+		const blogIdObjectId = stringToObjectId(blogId);
 
-		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(id);
-		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
+		const blog: BlogsTypeDb | null = await this.blogsRepository.findBlogById(id);
+		if (!blog) throw new NotFoundError(BLOG_NOT_FOUND);
 
 		const result = await this.postsRepository.updatePost(id, {
 			id,
 			title,
 			shortDescription,
 			content,
-			bloggerId: bloggerIdObjectId,
-			bloggerName: blogger.name,
+			blogId: blogIdObjectId,
+			blogName: blog.name,
 		});
 		if (!result) throw new Error(ERROR_DB);
 	}
@@ -114,26 +114,26 @@ export class PostsService {
 		title: string,
 		shortDescription: string,
 		content: string,
-		bloggerId: ObjectId,
+		blogId: ObjectId,
 	): Promise<PostsType> {
-		const blogger: BloggersTypeDb | null = await this.bloggersRepository.findBloggerById(bloggerId);
-		if (!blogger) throw new NotFoundError(BLOGGER_NOT_FOUND);
+		const blog: BlogsTypeDb | null = await this.blogsRepository.findBlogById(blogId);
+		if (!blog) throw new NotFoundError(BLOG_NOT_FOUND);
 
-		const addedAt = new Date().toISOString();
+		const createdAt = dateCreator()
 		const newPost: PostsTypeDb = {
 			_id: idCreator(),
 			title,
 			shortDescription,
 			content,
-			bloggerId,
-			bloggerName: blogger.name,
-			addedAt,
-			extendedLikesInfo: {
+			blogId,
+			blogName: blog.name,
+			createdAt,
+			/*extendedLikesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
 				myStatus: LikeStatus.None,
 				newestLikes: [],
-			},
+			},*/
 		};
 
 		const createdId: ObjectId | null = await this.postsRepository.createPost(newPost);
@@ -144,15 +144,15 @@ export class PostsService {
 			title,
 			shortDescription,
 			content,
-			bloggerId,
-			bloggerName: blogger.name,
-			addedAt,
-			extendedLikesInfo: {
+			blogId,
+			blogName: blog.name,
+			createdAt,
+			/*extendedLikesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
 				myStatus: LikeStatus.None,
 				newestLikes: [],
-			},
+			},*/
 		};
 	}
 
@@ -169,19 +169,19 @@ export class PostsService {
 		const post: PostsType = await this.findPostById(postId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const addedAt = new Date().toISOString();
+		const createdAt = dateCreator()
 		const newComment: CommentsTypeDb = {
 			_id: idCreator(),
 			content,
 			userId: user._id,
 			userLogin: user.accountData.login,
 			postId: post.id,
-			addedAt,
-			likesInfo: {
+			createdAt,
+			/*likesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
 				myStatus: LikeStatus.None,
-			},
+			},*/
 		};
 
 		const createdId: ObjectId | null = await this.commentsRepository.createComment(newComment);
@@ -192,12 +192,12 @@ export class PostsService {
 			content,
 			userId: user._id,
 			userLogin: user.accountData.login,
-			addedAt,
-			likesInfo: {
+			createdAt,
+			/*likesInfo: {
 				likesCount: 0,
 				dislikesCount: 0,
 				myStatus: LikeStatus.None,
-			},
+			},*/
 		};
 	}
 
@@ -207,20 +207,20 @@ export class PostsService {
 			title,
 			shortDescription,
 			content,
-			bloggerId,
-			bloggerName,
-			addedAt,
-			extendedLikesInfo,
+			blogId,
+			blogName,
+			createdAt,
+			//extendedLikesInfo,
 		} = item;
 		return {
 			id: _id,
 			title,
 			shortDescription,
 			content,
-			bloggerId,
-			bloggerName,
-			addedAt,
-			extendedLikesInfo,
+			blogId,
+			blogName,
+			createdAt,
+			//extendedLikesInfo,
 		};
 	}
 }

@@ -1,8 +1,13 @@
 import { PaginationCalc, PaginationTypeQuery } from '../types/paginationType';
 
 export const paginationCalc = (query: PaginationTypeQuery): PaginationCalc => {
-	const sortDirection = query.sortDirection === 'Asc' ? 1 : -1;
+	const sortDirection = query.sortDirection === 'asc' ? 1 : -1;
 	const sortBy = query.sortBy ? { [query.sortBy]: sortDirection } : { createdAt: sortDirection };
+
+	query.searchNameTerm;
+	query.searchLoginTerm;
+	query.searchEmailTerm;
+
 
 	let pageNumber = +query.pageNumber;
 	let pageSize = +query.pageSize;

@@ -3,7 +3,7 @@ import { UsersType } from '../types/usersType';
 import { ObjectId } from 'mongodb';
 import { NotFoundError } from '../errors/notFoundError';
 import {
-	BLOGGER_NOT_FOUND,
+	BLOG_NOT_FOUND,
 	COMMENT_FORBIDDEN_DELETE,
 	COMMENT_FORBIDDEN_EDIT,
 	COMMENT_NOT_FOUND,
@@ -79,7 +79,7 @@ export class CommentsService {
 			throw new ForbiddenError(COMMENT_FORBIDDEN_DELETE);
 
 		const result = await this.commentsRepository.deleteComment(id);
-		if (!result) throw new NotFoundError(BLOGGER_NOT_FOUND);
+		if (!result) throw new NotFoundError(BLOG_NOT_FOUND);
 	}
 
 	async updateComment(id: ObjectId, content: string, authUser: null | UsersType): Promise<void> {
@@ -96,7 +96,7 @@ export class CommentsService {
 	}
 
 	private commentMap(item: CommentsTypeDb): CommentsType {
-		const { _id, content, userId, userLogin, addedAt, likesInfo } = item;
-		return { id: _id, content, userId, userLogin, addedAt, likesInfo };
+		const { _id, content, userId, userLogin, createdAt, /*likesInfo*/ } = item;
+		return { id: _id, content, userId, userLogin, createdAt, /*likesInfo*/ };
 	}
 }

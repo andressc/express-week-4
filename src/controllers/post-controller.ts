@@ -79,7 +79,7 @@ export class PostController {
 				req.body.title,
 				req.body.shortDescription,
 				req.body.content,
-				stringToObjectId(req.body.bloggerId),
+				stringToObjectId(req.body.blogId),
 			);
 
 			return res.status(HttpStatusCode.CREATED).send(post);

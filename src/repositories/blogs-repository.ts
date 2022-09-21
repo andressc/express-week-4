@@ -1,21 +1,20 @@
-import { BloggerModel } from '../db/db';
-import { BloggersTypeDb } from '../types/blogsType';
-import { ObjectId } from 'mongodb';
-import { injectable } from 'inversify';
+import {BlogModel} from '../db/db';
+import {BlogsTypeDb} from '../types/blogsType';
+import {ObjectId} from 'mongodb';
+import {injectable} from 'inversify';
 
 @injectable()
 export class BlogsRepository {
-	async findAllBloggers(
+	async findAllBlogs(
 		skip: number,
 		pageSize: number,
 		sortBy: {},
-		searchNameTerm: string | null | undefined,
-	): Promise<BloggersTypeDb[]> {
-		const searchString = searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
+		searchNameTerm: string | undefined,
+	): Promise<BlogsTypeDb[]> {
+		const searchString = this.searchTerm(searchNameTerm)
 
 		return (
-			BloggerModel
-				//.find(searchString, { projection: { _id: 0 } })
+			BlogModel
 				.find(searchString)
 				.skip(skip)
 				.limit(pageSize)
@@ -24,37 +23,41 @@ export class BlogsRepository {
 		);
 	}
 
-	async findBloggerById(id: ObjectId): Promise<BloggersTypeDb | null> {
-		const blogger: BloggersTypeDb | null = await BloggerModel.findOne({ _id: id });
+	async findBlogById(id: ObjectId): Promise<BlogsTypeDb | null> {
+		const blog: BlogsTypeDb | null = await BlogModel.findOne({ _id: id });
 
-		if (!blogger) return null;
-		return blogger;
+		if (!blog) return null;
+		return blog;
 	}
 
-	async deleteBlogger(id: ObjectId): Promise<boolean> {
-		const result = await BloggerModel.deleteOne({ _id: id });
+	async deleteBlog(id: ObjectId): Promise<boolean> {
+		const result = await BlogModel.deleteOne({ _id: id });
 		return result.deletedCount === 1;
 	}
 
-	async deleteAllBloggers(): Promise<boolean> {
-		const result = await BloggerModel.deleteMany({});
+	async deleteAllBlogs(): Promise<boolean> {
+		const result = await BlogModel.deleteMany({});
 		return result.deletedCount === 1;
 	}
 
-	async updateBlogger(id: ObjectId, name: string, youtubeUrl: string): Promise<boolean> {
-		const result = await BloggerModel.updateOne({ _id: id }, { $set: { name, youtubeUrl } });
+	async updateBlog(id: ObjectId, name: string, youtubeUrl: string): Promise<boolean> {
+		const result = await BlogModel.updateOne({ _id: id }, { $set: { name, youtubeUrl } });
 		return result.acknowledged;
 	}
 
-	async createBlogger(newBlogger: BloggersTypeDb): Promise<ObjectId | null> {
-		const result = await BloggerModel.create(newBlogger);
+	async createBlog(newBlog: BlogsTypeDb): Promise<ObjectId | null> {
+		const result = await BlogModel.create(newBlog);
 
 		if (!result.id) return null;
 		return result.id;
 	}
 
-	async getTotalCount(searchNameTerm: string | null | undefined): Promise<number> {
-		const searchString = searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
-		return BloggerModel.countDocuments(searchString);
+	async getTotalCount(searchNameTerm: string | undefined): Promise<number> {
+		const searchString = this.searchTerm(searchNameTerm);
+		return BlogModel.countDocuments(searchString);
+	}
+
+	private searchTerm = (searchNameTerm: string | undefined): {} => {
+		return searchNameTerm ? {name: {$regex: searchNameTerm}} : {}
 	}
 }

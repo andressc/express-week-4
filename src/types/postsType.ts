@@ -18,10 +18,10 @@ export type PostsType = {
 	title: string;
 	shortDescription: string;
 	content: string;
-	bloggerId: ObjectId;
-	bloggerName: string;
-	addedAt: string;
-	extendedLikesInfo: LikesPostsInfoType;
+	blogId: ObjectId;
+	blogName: string;
+	createdAt: string
+	//extendedLikesInfo: LikesPostsInfoType;
 };
 
 export type PostsTypeUpdate = {
@@ -29,8 +29,8 @@ export type PostsTypeUpdate = {
 	title: string;
 	shortDescription: string;
 	content: string;
-	bloggerId: ObjectId;
-	bloggerName: string;
+	blogId: ObjectId;
+	blogName: string;
 };
 
 export type PostsTypeDb = {
@@ -38,10 +38,10 @@ export type PostsTypeDb = {
 	title: string;
 	shortDescription: string;
 	content: string;
-	bloggerId: ObjectId;
-	bloggerName: string;
-	addedAt: string;
-	extendedLikesInfo: LikesPostsInfoType;
+	blogId: ObjectId;
+	blogName: string;
+	createdAt: string
+	//extendedLikesInfo: LikesPostsInfoType;
 };
 
 export type PostsTypeMap = {
@@ -49,15 +49,15 @@ export type PostsTypeMap = {
 	title: string;
 	shortDescription: string;
 	content: string;
-	bloggerId: ObjectId;
-	bloggerName: string;
-	addedAt: string;
-	likes: [];
+	blogId: ObjectId;
+	blogName: string;
+	createdAt: string
+	//likes: [];
 };
 
 export type PostsTypeReq = {
 	title: string;
 	shortDescription: string;
 	content: string;
-	bloggerId: string;
+	blogId: string;
 };

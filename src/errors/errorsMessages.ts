@@ -1,5 +1,5 @@
 export const ERROR_DB = 'Error DB';
-export const BLOGGER_NOT_FOUND = 'Blogger Not Found';
+export const BLOG_NOT_FOUND = 'Blog Not Found';
 export const USER_NOT_FOUND = 'User Not Found';
 export const COMMENT_NOT_FOUND = 'Comment Not Found';
 export const POST_NOT_FOUND = 'Post Not Found';

@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use('/bloggers', blogsRouter);
+app.use('/blogs', blogsRouter);
 app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
 app.use('/testing', testingRouter);

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
-import { BloggersTypeDb } from '../types/blogsType';
+import { BlogsTypeDb } from '../types/blogsType';
 import { PostsTypeDb } from '../types/postsType';
 import { UsersTypeDb } from '../types/usersType';
 import { CommentsTypeDb } from '../types/commentsType';
@@ -15,7 +15,7 @@ const dbName = process.env.mongoDbName || 'learning';
 
 /*const client = new MongoClient(mongoUri);
 const db = client.db('learning');
-export const bloggersCollection = db.collection<BloggersTypeDb>('bloggers');
+export const blogsCollection = db.collection<BlogsTypeDb>('blogs');
 export const postsCollection = db.collection<PostsTypeDb>('posts');
 export const usersCollection = db.collection<UsersTypeDb>('users');
 export const commentsCollection = db.collection<CommentsTypeDb>('comments');
@@ -27,15 +27,16 @@ const postSchema = new mongoose.Schema<PostsTypeDb>({
 	title: { type: String, required: true },
 	shortDescription: { type: String, required: true },
 	content: String,
-	bloggerId: { type: ObjectId, required: true },
-	bloggerName: { type: String, required: true },
-	addedAt: Date,
+	blogId: { type: ObjectId, required: true },
+	blogName: { type: String, required: true },
+	createdAt: Date,
 });
 
-const bloggerSchema = new mongoose.Schema<BloggersTypeDb>({
+const blogschema = new mongoose.Schema<BlogsTypeDb>({
 	_id: ObjectId,
 	name: { type: String, required: true },
 	youtubeUrl: { type: String, required: true },
+	createdAt: Date,
 });
 
 const userSchema = new mongoose.Schema<UsersTypeDb>({
@@ -50,6 +51,7 @@ const userSchema = new mongoose.Schema<UsersTypeDb>({
 		email: String,
 		passwordHash: String,
 	},
+	createdAt: Date,
 });
 
 const commentSchema = new mongoose.Schema<CommentsTypeDb>({
@@ -58,7 +60,7 @@ const commentSchema = new mongoose.Schema<CommentsTypeDb>({
 	userId: ObjectId,
 	userLogin: String,
 	postId: ObjectId,
-	addedAt: String,
+	createdAt: Date,
 });
 
 const remoteUserIpSchema = new mongoose.Schema<RemoteUserIpType>({
@@ -83,7 +85,7 @@ const likeSchema = new mongoose.Schema<LikeTypeDb>({
 });
 
 export const PostModel = mongoose.model('posts', postSchema);
-export const BloggerModel = mongoose.model('bloggers', bloggerSchema);
+export const BlogModel = mongoose.model('blogs', blogschema);
 export const UserModel = mongoose.model('users', userSchema);
 export const CommentModel = mongoose.model('comments', commentSchema);
 export const RemoteUserIpModel = mongoose.model('ip', remoteUserIpSchema);

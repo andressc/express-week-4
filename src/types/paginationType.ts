@@ -13,9 +13,9 @@ export type PaginationTypeQuery = {
 	sortBy: string | null;
 	sortDirection: string | null;
 	id?: string | null;
-	searchNameTerm?: string | null;
-	searchLoginTerm?: string | null;
-	searchEmailTerm?: string | null;
+	searchNameTerm?: string;
+	searchLoginTerm?: string;
+	searchEmailTerm?: string;
 };
 
 export type PaginationTypeQueryRequest = {

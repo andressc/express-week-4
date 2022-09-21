@@ -14,54 +14,54 @@ import { inject, injectable } from 'inversify';
 
 @injectable()
 export class BlogController {
-	constructor(@inject(BlogsService) protected bloggersService: BlogsService) {}
+	constructor(@inject(BlogsService) protected blogsService: BlogsService) {}
 
-	async findAllBloggers(req: Request<{}, {}, {}, PaginationTypeQuery>, res: Response) {
+	async findAllBlogs(req: Request<{}, {}, {}, PaginationTypeQuery>, res: Response) {
 		try {
-			const bloggers: PaginationType<BlogsType[]> = await this.bloggersService.findAllBloggers(
+			const blogs: PaginationType<BlogsType[]> = await this.blogsService.findAllBlogs(
 				req.query,
 			);
-			return res.send(bloggers);
+			return res.send(blogs);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}
 	}
 
-	async findBloggerById(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
+	async findBlogById(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
 		try {
-			const blogger: BlogsType = await this.bloggersService.findBloggerById(
+			const blog: BlogsType = await this.blogsService.findBlogById(
 				stringToObjectId(req.params.id),
 			);
 
-			return res.send(blogger);
+			return res.send(blog);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}
 	}
 
-	async findPostsBlogger(
+	async findPostsBlog(
 		req: Request<{ id: string }, {}, {}, PaginationTypeQueryRequest>,
 		res: Response,
 	) {
 		try {
-			const bloggerPosts: PaginationType<PostsType[]> =
-				await this.bloggersService.findAllPostsBlogger(
+			const blogPosts: PaginationType<PostsType[]> =
+				await this.blogsService.findAllPostsBlog(
 					req.query,
 					stringToObjectId(req.params.id),
 					req.user,
 				);
-			return res.send(bloggerPosts);
+			return res.send(blogPosts);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}
 	}
 
-	async deleteBlogger(req: Request<{ id: string }, {}, {}, { name: string }>, res: Response) {
+	async deleteBlog(req: Request<{ id: string }, {}, {}, { name: string }>, res: Response) {
 		try {
-			await this.bloggersService.deleteBlogger(stringToObjectId(req.params.id));
+			await this.blogsService.deleteBlog(stringToObjectId(req.params.id));
 			return res.send(HttpStatusCode.NO_CONTENT);
 		} catch (error) {
 			const err = generateErrorCode(error);
@@ -69,45 +69,45 @@ export class BlogController {
 		}
 	}
 
-	async createBlogger(
+	async createBlog(
 		req: Request<{}, {}, { name: string; youtubeUrl: string }, {}>,
 		res: Response,
 	) {
 		try {
-			const blogger: BlogsType = await this.bloggersService.createBlogger(
+			const blog: BlogsType = await this.blogsService.createBlog(
 				req.body.name,
 				req.body.youtubeUrl,
 			);
 
-			return res.status(HttpStatusCode.CREATED).send(blogger);
+			return res.status(HttpStatusCode.CREATED).send(blog);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}
 	}
 
-	async createBloggerPost(req: Request<{ id: string }, {}, PostsType, {}>, res: Response) {
+	async createBlogPost(req: Request<{ id: string }, {}, PostsType, {}>, res: Response) {
 		try {
-			const bloggersPost: PostsType = await this.bloggersService.createBloggerPost(
+			const blogsPost: PostsType = await this.blogsService.createBlogPost(
 				stringToObjectId(req.params.id),
 				req.body.title,
 				req.body.shortDescription,
 				req.body.content,
 			);
 
-			return res.status(HttpStatusCode.CREATED).send(bloggersPost);
+			return res.status(HttpStatusCode.CREATED).send(blogsPost);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}
 	}
 
-	async updateBlogger(
+	async updateBlog(
 		req: Request<{ id: string }, {}, { name: string; youtubeUrl: string }, {}>,
 		res: Response,
 	) {
 		try {
-			await this.bloggersService.updateBlogger(
+			await this.blogsService.updateBlog(
 				stringToObjectId(req.params.id),
 				req.body.name,
 				req.body.youtubeUrl,
