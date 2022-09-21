@@ -26,9 +26,9 @@ export class CommentsRepository {
 				},
 			},
 		])
+			.sort(sortBy)
 			.skip(skip)
-			.limit(pageSize)
-			.sort(sortBy);
+			.limit(pageSize);
 
 		return this.mapComments(comment, authUserId);
 	}

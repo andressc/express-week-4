@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { paginationCalc } from '../helpers/paginationCalc';
 import { UsersRepository } from '../repositories/users-repository';
 import { inject, injectable } from 'inversify';
-import {dateCreator} from "../helpers/dateCreator";
+import { dateCreator } from '../helpers/dateCreator';
 
 @injectable()
 export class UsersService {
@@ -22,7 +22,10 @@ export class UsersService {
 		const searchLoginTerm = query.searchLoginTerm;
 		const searchEmailTerm = query.searchEmailTerm;
 
-		const totalCount: number = await this.usersRepository.getTotalCount(searchLoginTerm, searchEmailTerm);
+		const totalCount: number = await this.usersRepository.getTotalCount(
+			searchLoginTerm,
+			searchEmailTerm,
+		);
 		const data: PaginationCalc = paginationCalc({ ...query, totalCount });
 
 		const items: UsersTypeDb[] = await this.usersRepository.findAllUsers(
@@ -34,7 +37,10 @@ export class UsersService {
 		);
 
 		const newItems: Array<{ id: ObjectId; login: string }> = items.map((item) => {
-			const {_id, accountData: { login }} = item;
+			const {
+				_id,
+				accountData: { login },
+			} = item;
 			return { id: _id, login };
 		});
 
@@ -71,7 +77,7 @@ export class UsersService {
 				passwordHash,
 			},
 			emailConfirmation: generateConfirmationCode(true),
-			createdAt: dateCreator()
+			createdAt: dateCreator(),
 		};
 
 		const createdId: ObjectId | null = await this.usersRepository.createUser(newUser);

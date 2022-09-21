@@ -16,12 +16,12 @@ export type UsersType = {
 	id: ObjectId;
 	emailConfirmation: EmailConfirmation;
 	accountData: AccountData;
-	createdAt: string
+	createdAt: string;
 };
 
 export type UsersTypeDb = {
 	_id: ObjectId;
 	emailConfirmation: EmailConfirmation;
 	accountData: AccountData;
-	createdAt: string
+	createdAt: string;
 };

@@ -12,9 +12,8 @@ export class UsersRepository {
 		searchLoginTerm: string | undefined,
 		searchEmailTerm: string | undefined,
 	): Promise<UsersTypeDb[]> {
-
-		const searchString = this.searchTerm(searchLoginTerm, searchEmailTerm)
-		return UserModel.find(searchString).skip(skip).limit(pageSize).sort(sortBy).lean();
+		const searchString = this.searchTerm(searchLoginTerm, searchEmailTerm);
+		return UserModel.find(searchString).sort(sortBy).skip(skip).limit(pageSize).lean();
 	}
 
 	async findUserById(id: ObjectId): Promise<UsersTypeDb | null> {
@@ -72,20 +71,19 @@ export class UsersRepository {
 		return result._id;
 	}
 
-	async getTotalCount(searchLoginTerm: string | undefined, searchEmailTerm: string | undefined): Promise<number> {
-		const searchString = this.searchTerm(searchLoginTerm, searchEmailTerm)
+	async getTotalCount(
+		searchLoginTerm: string | undefined,
+		searchEmailTerm: string | undefined,
+	): Promise<number> {
+		const searchString = this.searchTerm(searchLoginTerm, searchEmailTerm);
 		return UserModel.countDocuments(searchString);
 	}
 
 	private searchTerm = (login: string | undefined, email: string | undefined): {} => {
 		let searchString = {};
 
-		const searchLoginTerm = login
-			? { login: { $regex: login, $options: 'i' } }
-			: null;
-		const searchEmailTerm = email
-			? { email: { $regex: email, $options: 'i' } }
-			: null;
+		const searchLoginTerm = login ? { login: { $regex: login, $options: 'i' } } : null;
+		const searchEmailTerm = email ? { email: { $regex: email, $options: 'i' } } : null;
 
 		if (searchLoginTerm) searchString = searchLoginTerm;
 		if (searchEmailTerm) searchString = searchEmailTerm;
@@ -93,6 +91,6 @@ export class UsersRepository {
 		if (searchLoginTerm && searchEmailTerm)
 			searchString = { $or: [searchLoginTerm, searchEmailTerm] };
 
-		return searchString
-	}
+		return searchString;
+	};
 }

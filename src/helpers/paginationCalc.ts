@@ -8,7 +8,6 @@ export const paginationCalc = (query: PaginationTypeQuery): PaginationCalc => {
 	query.searchLoginTerm;
 	query.searchEmailTerm;
 
-
 	let pageNumber = +query.pageNumber;
 	let pageSize = +query.pageSize;
 	let totalCount = +query.totalCount;

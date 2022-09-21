@@ -18,9 +18,7 @@ export class BlogController {
 
 	async findAllBlogs(req: Request<{}, {}, {}, PaginationTypeQuery>, res: Response) {
 		try {
-			const blogs: PaginationType<BlogsType[]> = await this.blogsService.findAllBlogs(
-				req.query,
-			);
+			const blogs: PaginationType<BlogsType[]> = await this.blogsService.findAllBlogs(req.query);
 			return res.send(blogs);
 		} catch (error) {
 			const err = generateErrorCode(error);
@@ -30,9 +28,7 @@ export class BlogController {
 
 	async findBlogById(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
 		try {
-			const blog: BlogsType = await this.blogsService.findBlogById(
-				stringToObjectId(req.params.id),
-			);
+			const blog: BlogsType = await this.blogsService.findBlogById(stringToObjectId(req.params.id));
 
 			return res.send(blog);
 		} catch (error) {
@@ -46,12 +42,11 @@ export class BlogController {
 		res: Response,
 	) {
 		try {
-			const blogPosts: PaginationType<PostsType[]> =
-				await this.blogsService.findAllPostsBlog(
-					req.query,
-					stringToObjectId(req.params.id),
-					req.user,
-				);
+			const blogPosts: PaginationType<PostsType[]> = await this.blogsService.findAllPostsBlog(
+				req.query,
+				stringToObjectId(req.params.id),
+				req.user,
+			);
 			return res.send(blogPosts);
 		} catch (error) {
 			const err = generateErrorCode(error);
@@ -69,10 +64,7 @@ export class BlogController {
 		}
 	}
 
-	async createBlog(
-		req: Request<{}, {}, { name: string; youtubeUrl: string }, {}>,
-		res: Response,
-	) {
+	async createBlog(req: Request<{}, {}, { name: string; youtubeUrl: string }, {}>, res: Response) {
 		try {
 			const blog: BlogsType = await this.blogsService.createBlog(
 				req.body.name,

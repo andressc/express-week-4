@@ -1,7 +1,7 @@
-import {BlogModel} from '../db/db';
-import {BlogsTypeDb} from '../types/blogsType';
-import {ObjectId} from 'mongodb';
-import {injectable} from 'inversify';
+import { BlogModel } from '../db/db';
+import { BlogsTypeDb } from '../types/blogsType';
+import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
 
 @injectable()
 export class BlogsRepository {
@@ -11,16 +11,9 @@ export class BlogsRepository {
 		sortBy: {},
 		searchNameTerm: string | undefined,
 	): Promise<BlogsTypeDb[]> {
-		const searchString = this.searchTerm(searchNameTerm)
+		const searchString = this.searchTerm(searchNameTerm);
 
-		return (
-			BlogModel
-				.find(searchString)
-				.skip(skip)
-				.limit(pageSize)
-				.sort(sortBy)
-				.lean()
-		);
+		return BlogModel.find(searchString).sort(sortBy).skip(skip).limit(pageSize).lean();
 	}
 
 	async findBlogById(id: ObjectId): Promise<BlogsTypeDb | null> {
@@ -58,6 +51,6 @@ export class BlogsRepository {
 	}
 
 	private searchTerm = (searchNameTerm: string | undefined): {} => {
-		return searchNameTerm ? {name: {$regex: searchNameTerm}} : {}
-	}
+		return searchNameTerm ? { name: { $regex: searchNameTerm } } : {};
+	};
 }

@@ -96,7 +96,7 @@ export class CommentsService {
 	}
 
 	private commentMap(item: CommentsTypeDb): CommentsType {
-		const { _id, content, userId, userLogin, createdAt, /*likesInfo*/ } = item;
-		return { id: _id, content, userId, userLogin, createdAt, /*likesInfo*/ };
+		const { _id, content, userId, userLogin, createdAt /*likesInfo*/ } = item;
+		return { id: _id, content, userId, userLogin, createdAt /*likesInfo*/ };
 	}
 }

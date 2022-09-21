@@ -20,7 +20,7 @@ import { UsersRepository } from '../repositories/users-repository';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens-repository';
 import { JwtService } from './jwt-service';
 import { inject, injectable } from 'inversify';
-import {dateCreator} from "../helpers/dateCreator";
+import { dateCreator } from '../helpers/dateCreator';
 
 @injectable()
 export class AuthService {
@@ -60,7 +60,7 @@ export class AuthService {
 				passwordHash,
 			},
 			emailConfirmation,
-			createdAt: dateCreator()
+			createdAt: dateCreator(),
 		};
 
 		const createdId: ObjectId | null = await this.usersRepository.createUser(newUser);

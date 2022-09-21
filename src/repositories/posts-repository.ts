@@ -26,9 +26,10 @@ export class PostsRepository {
 				},
 			},
 		])
+			.sort(sortBy)
 			.skip(skip)
-			.limit(pageSize)
-			.sort(sortBy);
+			.limit(pageSize);
+
 		return this.mapPosts(post, authUserId);
 	}
 

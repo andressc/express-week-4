@@ -10,7 +10,7 @@ import { BlogsRepository } from '../repositories/blogs-repository';
 import { PostsService } from './posts-service';
 import { inject, injectable } from 'inversify';
 import { UsersType } from '../types/usersType';
-import {dateCreator} from "../helpers/dateCreator";
+import { dateCreator } from '../helpers/dateCreator';
 
 @injectable()
 export class BlogsService {
@@ -85,7 +85,7 @@ export class BlogsService {
 			id: createdId,
 			name: newBlog.name,
 			youtubeUrl: newBlog.youtubeUrl,
-			createdAt: newBlog.createdAt
+			createdAt: newBlog.createdAt,
 		};
 	}
 

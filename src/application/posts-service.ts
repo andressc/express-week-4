@@ -4,12 +4,7 @@ import { PaginationCalc, PaginationType, PaginationTypeQuery } from '../types/pa
 import { UsersType, UsersTypeDb } from '../types/usersType';
 import { CommentsType, CommentsTypeDb } from '../types/commentsType';
 import { ObjectId } from 'mongodb';
-import {
-	BLOG_NOT_FOUND,
-	ERROR_DB,
-	POST_NOT_FOUND,
-	USER_NOT_FOUND,
-} from '../errors/errorsMessages';
+import { BLOG_NOT_FOUND, ERROR_DB, POST_NOT_FOUND, USER_NOT_FOUND } from '../errors/errorsMessages';
 import { NotFoundError } from '../errors/notFoundError';
 import { paginationCalc } from '../helpers/paginationCalc';
 import { stringToObjectId } from '../helpers/stringToObjectId';
@@ -20,7 +15,7 @@ import { inject, injectable } from 'inversify';
 import { BlogsTypeDb } from '../types/blogsType';
 import { BlogsRepository } from '../repositories/blogs-repository';
 import { UsersRepository } from '../repositories/users-repository';
-import {dateCreator} from "../helpers/dateCreator";
+import { dateCreator } from '../helpers/dateCreator';
 
 @injectable()
 export class PostsService {
@@ -119,7 +114,7 @@ export class PostsService {
 		const blog: BlogsTypeDb | null = await this.blogsRepository.findBlogById(blogId);
 		if (!blog) throw new NotFoundError(BLOG_NOT_FOUND);
 
-		const createdAt = dateCreator()
+		const createdAt = dateCreator();
 		const newPost: PostsTypeDb = {
 			_id: idCreator(),
 			title,
@@ -169,7 +164,7 @@ export class PostsService {
 		const post: PostsType = await this.findPostById(postId);
 		if (!post) throw new NotFoundError(POST_NOT_FOUND);
 
-		const createdAt = dateCreator()
+		const createdAt = dateCreator();
 		const newComment: CommentsTypeDb = {
 			_id: idCreator(),
 			content,
