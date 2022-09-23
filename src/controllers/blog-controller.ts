@@ -57,7 +57,7 @@ export class BlogController {
 	async deleteBlog(req: Request<{ id: string }, {}, {}, { name: string }>, res: Response) {
 		try {
 			await this.blogsService.deleteBlog(stringToObjectId(req.params.id));
-			return res.send(HttpStatusCode.NO_CONTENT);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);

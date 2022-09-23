@@ -91,7 +91,7 @@ export class PostsService {
 	): Promise<void> {
 		const blogIdObjectId = stringToObjectId(blogId);
 
-		const blog: BlogsTypeDb | null = await this.blogsRepository.findBlogById(id);
+		const blog: BlogsTypeDb | null = await this.blogsRepository.findBlogById(blogIdObjectId);
 		if (!blog) throw new NotFoundError(BLOG_NOT_FOUND);
 
 		const result = await this.postsRepository.updatePost(id, {

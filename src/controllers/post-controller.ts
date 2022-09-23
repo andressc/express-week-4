@@ -66,7 +66,7 @@ export class PostController {
 	async deletePost(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
 		try {
 			await this.postsService.deletePost(stringToObjectId(req.params.id));
-			return res.send(HttpStatusCode.NO_CONTENT);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);

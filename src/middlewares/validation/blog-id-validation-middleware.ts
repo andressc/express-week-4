@@ -9,8 +9,10 @@ export const blogIdValidationMiddleware = [
 	body('blogId')
 		.notEmpty()
 		.withMessage('must not be empty')
+		.isMongoId()
+		.withMessage('Invalid parameter id')
 		.custom(async (value) => {
-			if (value.length !== 24) throw new Error('Invalid parameter id');
+			//if (value.length !== 24) throw new Error('Invalid parameter id');
 
 			const blog = await blogsService.findBlogById(stringToObjectId(value));
 			if (!blog) {

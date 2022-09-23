@@ -1,31 +1,18 @@
 import request from 'supertest';
-import { app } from '../../index';
 import { BlogsType } from '../../types/blogsType';
 import { HttpStatusCode } from '../../types/StatusCode';
-import { config } from 'dotenv';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
 import { BlogModel } from '../../db/db';
 import add from 'date-fns/add';
-
-config();
+import { app } from '../../init';
+import { connectMemoryDb, disconnectMemoryDb } from '../../db/memoryDb';
 
 jest.setTimeout(30 * 1000);
 
 describe('/blogs', () => {
-	let mongoServer: MongoMemoryServer;
-	beforeAll(async () => {
-		mongoServer = await MongoMemoryServer.create();
-		const mongoUri = mongoServer.getUri();
-		await mongoose.connect(mongoUri);
-		await mongoose.connection.db.dropDatabase();
-	});
-
-	afterAll(async () => {
-		await mongoose.disconnect();
-		await mongoServer.stop();
-	});
+	beforeAll(connectMemoryDb);
+	afterAll(disconnectMemoryDb);
 
 	const basicAuth = 'Basic YWRtaW46cXdlcnR5';
 	const wrongBasicAuth = 'invalid-basic-auth';
@@ -72,18 +59,14 @@ describe('/blogs', () => {
 
 			blog = createdBlog.body;
 
-			await request(app)
-				.get(`/blogs/${blog.id}`)
-				.send({
-					name,
-					youtubeUrl,
-				})
-				.expect(HttpStatusCode.OK);
+			await request(app).get(`/blogs/${blog.id}`).expect(HttpStatusCode.OK);
 
 			await request(app)
 				.delete(`/blogs/${blog.id}`)
 				.set('authorization', basicAuth)
 				.expect(HttpStatusCode.NO_CONTENT);
+
+			await request(app).get(`/blogs/${blog.id}`).expect(HttpStatusCode.NOT_FOUND);
 		});
 	});
 
@@ -115,13 +98,7 @@ describe('/blogs', () => {
 				})
 				.expect(HttpStatusCode.NO_CONTENT);
 
-			const getUpdatedBlog = await request(app)
-				.get(`/blogs/${blog.id}`)
-				.send({
-					name,
-					youtubeUrl,
-				})
-				.expect(HttpStatusCode.OK);
+			const getUpdatedBlog = await request(app).get(`/blogs/${blog.id}`).expect(HttpStatusCode.OK);
 
 			expect(getUpdatedBlog.body).toEqual({
 				id: expect.any(String),
@@ -178,10 +155,6 @@ describe('/blogs', () => {
 			await request(app)
 				.delete(`/blogs/${randomId}`)
 				.set('authorization', wrongBasicAuth)
-				.send({
-					name,
-					youtubeUrl,
-				})
 				.expect(HttpStatusCode.UNAUTHORIZED);
 
 			await request(app)
