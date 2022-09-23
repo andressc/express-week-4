@@ -73,6 +73,7 @@ export class BlogController {
 
 			return res.status(HttpStatusCode.CREATED).send(blog);
 		} catch (error) {
+			console.log(error);
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
 		}

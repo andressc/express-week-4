@@ -78,7 +78,6 @@ export class BlogsService {
 		const newBlog: BlogsTypeDb = { _id: idCreator(), name, youtubeUrl, createdAt: dateCreator() };
 
 		const createdId: ObjectId | null = await this.blogsRepository.createBlog(newBlog);
-
 		if (!createdId) throw new Error(ERROR_DB);
 
 		return {

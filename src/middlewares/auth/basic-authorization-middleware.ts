@@ -7,7 +7,7 @@ export const basicAuthorizationMiddleware = (req: Request, res: Response, next: 
 	if (!auth) return res.send(HttpStatusCode.UNAUTHORIZED);
 
 	const [name, base64] = auth.split(' ');
-	if (name !== 'Basic') return res.send(HttpStatusCode.UNAUTHORIZED);
+	if (name !== 'Basic') return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
 
 	const [login, password] = Buffer.from(base64, 'base64').toString('ascii').split(':');
 	if (login === 'admin' && password === 'qwerty') return next();

@@ -97,9 +97,9 @@ export const runDb = async () => {
 		/*await client.connect();
 		await db.command({ ping: 1 });*/
 		await mongoose.connect(`${mongoUri}/${dbName}?retryWrites=true`);
-		console.log('connected successfully to mongo server');
+		console.log('connected successfully to mongo server1');
 	} catch (e) {
-		console.log("Can't connect to db");
+		console.log("Can't connect to db1");
 		//await client.close();
 		await mongoose.disconnect();
 	}
