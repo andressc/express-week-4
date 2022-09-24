@@ -21,6 +21,8 @@ export class UsersService {
 	): Promise<PaginationType<Array<{ id: ObjectId; login: string }>>> {
 		const searchLoginTerm = query.searchLoginTerm;
 		const searchEmailTerm = query.searchEmailTerm;
+		const sortBy = query.sortBy;
+		const sortDirection = query.sortDirection;
 
 		const totalCount: number = await this.usersRepository.getTotalCount(
 			searchLoginTerm,
@@ -31,7 +33,8 @@ export class UsersService {
 		const items: UsersTypeDb[] = await this.usersRepository.findAllUsers(
 			data.skip,
 			data.pageSize,
-			data.sortBy,
+			sortBy,
+			sortDirection,
 			searchLoginTerm,
 			searchEmailTerm,
 		);
@@ -39,9 +42,10 @@ export class UsersService {
 		const newItems: Array<{ id: ObjectId; login: string }> = items.map((item) => {
 			const {
 				_id,
-				accountData: { login },
+				accountData: { login, email },
+				createdAt,
 			} = item;
-			return { id: _id, login };
+			return { id: _id, login, email, createdAt };
 		});
 
 		return {
@@ -65,10 +69,11 @@ export class UsersService {
 		login: string,
 		email: string,
 		password: string,
-	): Promise<{ id: string; login: string }> {
+	): Promise<{ id: string; login: string; email: string; createdAt: string }> {
 		const passwordSalt = await bcrypt.genSalt(10);
 		const passwordHash = await generateHash(password, passwordSalt);
 
+		const createdAt = dateCreator();
 		const newUser: UsersTypeDb = {
 			_id: idCreator(),
 			accountData: {
@@ -77,13 +82,13 @@ export class UsersService {
 				passwordHash,
 			},
 			emailConfirmation: generateConfirmationCode(true),
-			createdAt: dateCreator(),
+			createdAt,
 		};
 
 		const createdId: ObjectId | null = await this.usersRepository.createUser(newUser);
 		if (!createdId) throw new Error(ERROR_DB);
 
-		return { id: createdId.toString(), login };
+		return { id: createdId.toString(), login, email, createdAt };
 	}
 
 	async deleteUser(id: ObjectId): Promise<void> {

@@ -2,6 +2,7 @@ import { PaginationCalc, PaginationTypeQuery } from '../types/paginationType';
 
 export const paginationCalc = (query: PaginationTypeQuery): PaginationCalc => {
 	const sortDirection = query.sortDirection === 'asc' ? 1 : -1;
+
 	const sortBy = query.sortBy ? { [query.sortBy]: sortDirection } : { createdAt: sortDirection };
 
 	query.searchNameTerm;

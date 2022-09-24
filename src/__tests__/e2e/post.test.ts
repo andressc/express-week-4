@@ -238,10 +238,10 @@ describe('/posts', () => {
 			const response = await request(app).get('/posts').expect(HttpStatusCode.OK);
 
 			expect(response.body).toEqual({
-				pagesCount: expect.any(Number),
-				page: expect.any(Number),
-				pageSize: expect.any(Number),
-				totalCount: expect.any(Number),
+				pagesCount: 0,
+				page: 1,
+				pageSize: 10,
+				totalCount: 0,
 				items: [],
 			});
 		});

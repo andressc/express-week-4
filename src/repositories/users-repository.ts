@@ -8,11 +8,20 @@ export class UsersRepository {
 	async findAllUsers(
 		skip: number,
 		pageSize: number,
-		sortBy: {},
+		sortB: {} | null,
+		sortD: {} | null,
 		searchLoginTerm: string | undefined,
 		searchEmailTerm: string | undefined,
 	): Promise<UsersTypeDb[]> {
 		const searchString = this.searchTerm(searchLoginTerm, searchEmailTerm);
+
+		let nameSort = 'createdAt';
+		const sortDirection = sortD === 'asc' ? 1 : -1;
+		if (sortB == 'login') nameSort = 'accountData.login';
+		if (sortB == 'email') nameSort = 'accountData.email';
+		if (sortB == 'id') nameSort = '_id';
+		const sortBy: {} = { [nameSort]: sortDirection };
+
 		return UserModel.find(searchString).sort(sortBy).skip(skip).limit(pageSize).lean();
 	}
 
