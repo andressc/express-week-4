@@ -46,7 +46,7 @@ export class CommentController {
 	async deleteComment(req: Request<{ id: string }, {}, {}, {}>, res: Response) {
 		try {
 			await this.commentsService.deleteComment(stringToObjectId(req.params.id), req.user);
-			return res.send(HttpStatusCode.NO_CONTENT);
+			return res.sendStatus(HttpStatusCode.NO_CONTENT);
 		} catch (error) {
 			const err = generateErrorCode(error);
 			return res.status(err.status).send(err.message);
