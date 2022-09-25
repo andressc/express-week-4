@@ -147,7 +147,7 @@ describe('/posts', () => {
 
 			post = createdPost.body;
 
-			const updatedPost = await request(app)
+			await request(app)
 				.put(`/posts/${post.id}`)
 				.set('authorization', basicAuth)
 				.send({
