@@ -19,6 +19,7 @@ describe('Integration test for users-service', () => {
 	});
 
 	const usersService = container.resolve(UsersService);
+	//const usersService = container.resolve(UsersService);
 
 	describe('createUser', () => {
 		beforeAll(async () => {
