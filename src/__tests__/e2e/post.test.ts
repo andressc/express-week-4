@@ -49,10 +49,10 @@ describe('/posts', () => {
 				field: 'blogId',
 				message: expect.any(String),
 			},
-			/*{
+			{
 				field: 'blogId',
 				message: expect.any(String),
-			},*/
+			},
 		],
 	};
 
