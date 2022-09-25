@@ -10,7 +10,7 @@ import { CommentsType } from '../../types/commentsType';
 
 jest.setTimeout(30 * 1000);
 
-describe('/posts', () => {
+describe('/comments', () => {
 	beforeAll(connectMemoryDb);
 	afterAll(disconnectMemoryDb);
 

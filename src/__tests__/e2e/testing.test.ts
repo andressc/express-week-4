@@ -16,7 +16,7 @@ import { idCreator } from '../../helpers/idCreator';
 
 jest.setTimeout(30 * 1000);
 
-describe('/blogs', () => {
+describe('/testing', () => {
 	beforeAll(connectMemoryDb);
 	afterAll(disconnectMemoryDb);
 

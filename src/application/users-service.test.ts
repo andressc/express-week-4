@@ -34,12 +34,13 @@ describe('Integration test for users-service', () => {
 			expect(result).toEqual({
 				id: expect.any(String),
 				login,
+				email,
+				createdAt: expect.any(String),
 			});
 
 			const userModel: UsersTypeDb | null = await UserModel.findById({ _id: result.id });
 
 			expect(userModel).not.toBeNull();
-			//expect(userModel?._id).toStrictEqual(result.id)
 		});
 	});
 });
