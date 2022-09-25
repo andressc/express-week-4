@@ -82,8 +82,8 @@ describe('/auth', () => {
 				.expect(HttpStatusCode.OK);
 
 			expect(accessToken.body).toEqual({
-				accessToken: expect.any(String)
-			})
+				accessToken: expect.any(String),
+			});
 		});
 	});
 
@@ -93,9 +93,7 @@ describe('/auth', () => {
 		});
 
 		it('wrong body data', async () => {
-			const login = await request(app)
-				.post('/auth/login')
-				.expect(HttpStatusCode.BAD_REQUEST);
+			const login = await request(app).post('/auth/login').expect(HttpStatusCode.BAD_REQUEST);
 
 			expect(login.body).toEqual(loginErrorsMessages);
 		});
@@ -149,9 +147,7 @@ describe('/auth', () => {
 		});
 
 		it('wrong body data', async () => {
-			const user = await request(app)
-				.post('/auth/registration')
-				.expect(HttpStatusCode.BAD_REQUEST);
+			const user = await request(app).post('/auth/registration').expect(HttpStatusCode.BAD_REQUEST);
 
 			expect(user.body).toEqual(registrationErrorsMessages);
 		});
@@ -163,29 +159,21 @@ describe('/auth', () => {
 		});
 
 		it('login', async () => {
-			for(let i = 0; i < 5; i++) {
-				await request(app)
-					.post('/auth/login')
-					.expect(HttpStatusCode.BAD_REQUEST);
+			for (let i = 0; i < 5; i++) {
+				await request(app).post('/auth/login').expect(HttpStatusCode.BAD_REQUEST);
 			}
-			await request(app)
-				.post('/auth/login')
-				.expect(HttpStatusCode.TOO_MANY_REQUESTS);
+			await request(app).post('/auth/login').expect(HttpStatusCode.TOO_MANY_REQUESTS);
 		});
 
 		it('registration', async () => {
-			for(let i = 0; i < 5; i++) {
-				await request(app)
-					.post('/auth/registration')
-					.expect(HttpStatusCode.BAD_REQUEST);
+			for (let i = 0; i < 5; i++) {
+				await request(app).post('/auth/registration').expect(HttpStatusCode.BAD_REQUEST);
 			}
-			await request(app)
-				.post('/auth/registration')
-				.expect(HttpStatusCode.TOO_MANY_REQUESTS);
+			await request(app).post('/auth/registration').expect(HttpStatusCode.TOO_MANY_REQUESTS);
 		});
 
 		it('registration-confirmation', async () => {
-			for(let i = 0; i < 5; i++) {
+			for (let i = 0; i < 5; i++) {
 				await request(app)
 					.post('/auth/registration-confirmation')
 					.expect(HttpStatusCode.BAD_REQUEST);
@@ -196,7 +184,7 @@ describe('/auth', () => {
 		});
 
 		it('registration-email-resending', async () => {
-			for(let i = 0; i < 5; i++) {
+			for (let i = 0; i < 5; i++) {
 				await request(app)
 					.post('/auth/registration-email-resending')
 					.expect(HttpStatusCode.BAD_REQUEST);
@@ -207,14 +195,10 @@ describe('/auth', () => {
 		});
 
 		it('me', async () => {
-			for(let i = 0; i < 5; i++) {
-				await request(app)
-					.get('/auth/me')
-					.expect(HttpStatusCode.UNAUTHORIZED);
+			for (let i = 0; i < 5; i++) {
+				await request(app).get('/auth/me').expect(HttpStatusCode.UNAUTHORIZED);
 			}
-			await request(app)
-				.get('/auth/me')
-				.expect(HttpStatusCode.TOO_MANY_REQUESTS);
+			await request(app).get('/auth/me').expect(HttpStatusCode.TOO_MANY_REQUESTS);
 		});
 	});
 });

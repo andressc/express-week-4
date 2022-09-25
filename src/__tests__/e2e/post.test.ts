@@ -16,7 +16,7 @@ const sleep = (milliseconds: number) => {
 	do {
 		currentDate = Date.now();
 	} while (currentDate - date < milliseconds);
-}
+};
 
 describe('/posts', () => {
 	beforeAll(connectMemoryDb);
