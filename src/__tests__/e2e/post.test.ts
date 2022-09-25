@@ -10,6 +10,14 @@ import add from 'date-fns/add';
 
 jest.setTimeout(30 * 1000);
 
+const sleep = (milliseconds: number) => {
+	const date = Date.now();
+	let currentDate = null;
+	do {
+		currentDate = Date.now();
+	} while (currentDate - date < milliseconds);
+}
+
 describe('/posts', () => {
 	beforeAll(connectMemoryDb);
 	afterAll(disconnectMemoryDb);
@@ -41,10 +49,10 @@ describe('/posts', () => {
 				field: 'blogId',
 				message: expect.any(String),
 			},
-			{
+			/*{
 				field: 'blogId',
 				message: expect.any(String),
-			},
+			},*/
 		],
 	};
 
@@ -93,6 +101,8 @@ describe('/posts', () => {
 				.delete(`/posts/${post.id}`)
 				.set('authorization', basicAuth)
 				.expect(HttpStatusCode.NO_CONTENT);
+
+			sleep(1000);
 
 			await request(app).get(`/posts/${post.id}`).expect(HttpStatusCode.NOT_FOUND);
 		});
