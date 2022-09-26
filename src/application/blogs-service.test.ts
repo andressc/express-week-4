@@ -4,19 +4,16 @@ import { BlogModel, PostModel } from '../db/db';
 import { idCreator } from '../helpers/idCreator';
 import add from 'date-fns/add';
 import { ObjectId } from 'mongodb';
-import { USER_NOT_FOUND } from '../errors/errorsMessages';
-import { NotFoundError } from '../errors/notFoundError';
-import { HttpStatusCode } from '../types/StatusCode';
 import { connectMemoryDb, disconnectMemoryDb } from '../db/memoryDb';
 import { PostsTypeDb } from '../types/postsType';
 import { BlogsService } from './blogs-service';
 import { BlogsTypeDb } from '../types/blogsType';
+import { BLOG_NOT_FOUND } from '../errors/errorsMessages';
 
 describe('Integration test for blogs-service', () => {
 	beforeAll(connectMemoryDb);
 	afterAll(disconnectMemoryDb);
 
-	const idPost = idCreator();
 	const idBlog = idCreator();
 	const nameBlog = 'nameBlog';
 	const youtubeUrlBlog = 'https://www.youtube.com/channel/jmnbvfthmrert54ergbfbf';
@@ -170,7 +167,7 @@ describe('Integration test for blogs-service', () => {
 			});
 		});
 
-		it('post test select all comments of post and sort', async () => {
+		it('blog test select all blogs of post and sort', async () => {
 			const result = await blogsService.findAllPostsBlog(
 				{
 					pageNumber: '1',
@@ -190,7 +187,7 @@ describe('Integration test for blogs-service', () => {
 			});
 		});
 
-		/*it('blog test find posts of blogs by non existing blog id', async () => {
+		/*it('blog test find posts of blogs by non-existing blog id', async () => {
 			expect.assertions(1);
 			try {
 				await await postsService.findPostById(idCreator());
@@ -231,14 +228,9 @@ describe('Integration test for blogs-service', () => {
 			expect(result).toEqual(blogResultCreator(nameBlog));
 		});
 
-		/*it('blog test find blog by non existing id', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('blog test find blog by non existing id', async () => {
+			await expect(blogsService.findBlogById(idCreator())).rejects.toThrow(BLOG_NOT_FOUND);
+		});
 	});
 
 	describe('deleteBlog', () => {
@@ -255,12 +247,11 @@ describe('Integration test for blogs-service', () => {
 		/*it('find blog after deleting', async () => {
 			const result = await PostModel.findOne({ _id: idPost });
 			expect(result).toBeNull();
-		});
+		});*/
 
 		it('delete non exists blog', async () => {
-			const result = await PostModel.findOne({ _id: idPost });
-			expect(result).toBeNull();
-		});*/
+			await expect(blogsService.deleteBlog(idCreator())).rejects.toThrow(BLOG_NOT_FOUND);
+		});
 	});
 
 	describe('updateBlog', () => {
@@ -272,7 +263,9 @@ describe('Integration test for blogs-service', () => {
 		it('blog test update blog', async () => {
 			const result = await blogsService.updateBlog(idBlog, 'newName', 'newYoutubeUrl');
 			expect(result).toBe(void 0);
+		});
 
+		it('blog test find blog after update', async () => {
 			const blog = await blogsService.findBlogById(idBlog);
 			expect(blog).toEqual({
 				id: expect.any(Object),
@@ -282,14 +275,11 @@ describe('Integration test for blogs-service', () => {
 			});
 		});
 
-		/*it('blog test update blog by non existing id', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('blog test update blog by non existing id', async () => {
+			await expect(
+				blogsService.updateBlog(idCreator(), 'newName', 'newYoutubeUrl'),
+			).rejects.toThrow(BLOG_NOT_FOUND);
+		});
 	});
 
 	describe('createBlog', () => {
@@ -314,7 +304,7 @@ describe('Integration test for blogs-service', () => {
 	describe('createBlogPost', () => {
 		beforeAll(async () => {
 			await mongoose.connection.db.dropDatabase();
-			await await BlogModel.create(blogCreator(nameBlog, 1, idBlog));
+			await BlogModel.create(blogCreator(nameBlog, 1, idBlog));
 		});
 
 		it('blog test create new post of blog', async () => {
@@ -338,25 +328,10 @@ describe('Integration test for blogs-service', () => {
 			expect(postsModel).not.toBeNull();
 		});
 
-		/*it('blog test create new post of non exiting blog', async () => {
-			const result = await blogsService.createBlogPost(
-				idBlog,
-				titlePost,
-				shortDescriptionPost,
-				contentPost,
-			);
-			expect(result).toEqual({
-				id: expect.any(String),
-				title: titlePost,
-				shortDescription: shortDescriptionPost,
-				content: contentPost,
-				blogId: idBlog,
-				blogName: nameBlog,
-				createdAt: expect.any(String),
-			});
-
-			const postsModel: PostsTypeDb | null = await PostModel.findById({ _id: result.id });
-			expect(postsModel).not.toBeNull();
-		});*/
+		it('blog test create new post of non exiting blog', async () => {
+			await expect(
+				blogsService.createBlogPost(idCreator(), titlePost, shortDescriptionPost, contentPost),
+			).rejects.toThrow(BLOG_NOT_FOUND);
+		});
 	});
 });

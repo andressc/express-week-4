@@ -6,11 +6,8 @@ import { UsersTypeDb } from '../types/usersType';
 import { idCreator } from '../helpers/idCreator';
 import add from 'date-fns/add';
 import { ObjectId } from 'mongodb';
-import { USER_NOT_FOUND } from '../errors/errorsMessages';
-import { NotFoundError } from '../errors/notFoundError';
-import { HttpStatusCode } from '../types/StatusCode';
 import { connectMemoryDb, disconnectMemoryDb } from '../db/memoryDb';
-import { sleep } from '../helpers/sleep';
+import { USER_NOT_FOUND } from '../errors/errorsMessages';
 
 describe('Integration test for users-service', () => {
 	beforeAll(connectMemoryDb);
@@ -181,14 +178,9 @@ describe('Integration test for users-service', () => {
 			expect(result).toEqual(userResultCreator2(idUser, loginUser, emailUser));
 		});
 
-		/*it('user test find user by non existing id', async () => {
-			expect.assertions(1);
-			try {
-				await usersService.findUserById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(USER_NOT_FOUND).name);
-			}
-		});*/
+		it('user test find user by non existing id', async () => {
+			await expect(usersService.findUserById(idCreator())).rejects.toThrow(USER_NOT_FOUND);
+		});
 	});
 
 	describe('findUserByEmail', () => {
@@ -239,14 +231,11 @@ describe('Integration test for users-service', () => {
 			expect(result.accountData.email).toBe(emailUser);
 		});
 
-		/*it('user test find user by non existing confirmation code', async () => {
-			expect.assertions(1);
-			try {
-				await usersService.findUserById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(USER_NOT_FOUND).name);
-			}
-		});*/
+		it('user test find user by non existing confirmation code', async () => {
+			await expect(usersService.findUserByConfirmationCode('conformationCode')).rejects.toThrow(
+				USER_NOT_FOUND,
+			);
+		});
 	});
 
 	describe('createUser', () => {
@@ -284,12 +273,10 @@ describe('Integration test for users-service', () => {
 			sleep(1000);
 			const result = await UserModel.findOne({ _id: idUser });
 			expect(result).toBeNull();
-		});
+		});*/
 
 		it('delete non exists user', async () => {
-			const result = await PostModel.findOne({ _id: idPost });
-			expect(result).toBeNull();
+			await expect(usersService.deleteUser(idCreator())).rejects.toThrow(USER_NOT_FOUND);
 		});
-		*/
 	});
 });

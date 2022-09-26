@@ -4,20 +4,18 @@ import { BlogModel, CommentModel, PostModel, UserModel } from '../db/db';
 import { idCreator } from '../helpers/idCreator';
 import add from 'date-fns/add';
 import { ObjectId } from 'mongodb';
-import { USER_NOT_FOUND } from '../errors/errorsMessages';
-import { NotFoundError } from '../errors/notFoundError';
-import { HttpStatusCode } from '../types/StatusCode';
 import { connectMemoryDb, disconnectMemoryDb } from '../db/memoryDb';
 import { PostsService } from './posts-service';
 import { PostsTypeDb } from '../types/postsType';
-import { UsersService } from './users-service';
 import { CommentsTypeDb } from '../types/commentsType';
+import { BLOG_NOT_FOUND, POST_NOT_FOUND } from '../errors/errorsMessages';
 
 describe('Integration test for posts-service', () => {
 	beforeAll(connectMemoryDb);
 	afterAll(disconnectMemoryDb);
 
 	const idPost = idCreator();
+	const idPost2 = idCreator();
 	const idBlog = idCreator();
 	const nameBlog = 'nameBlog';
 	const titlePost = 'titlePost';
@@ -128,7 +126,6 @@ describe('Integration test for posts-service', () => {
 	};
 
 	const postsService = container.resolve(PostsService);
-	const usersService = container.resolve(UsersService);
 
 	describe('findAllPosts', () => {
 		beforeAll(async () => {
@@ -183,7 +180,10 @@ describe('Integration test for posts-service', () => {
 	describe('findAllCommentsOfPost', () => {
 		beforeAll(async () => {
 			await mongoose.connection.db.dropDatabase();
-			await PostModel.create(postCreator('aTitle', 1, idPost));
+			await PostModel.insertMany([
+				postCreator('aTitle', 1, idPost),
+				postCreator('aTitle', 1, idPost2),
+			]);
 			await CommentModel.insertMany([
 				commentCreator(idPost, 'aContent', 1),
 				commentCreator(idPost, 'cContent', 2),
@@ -229,23 +229,34 @@ describe('Integration test for posts-service', () => {
 			});
 		});
 
-		/*it('post test find comments of post by non existing post id', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('post test find comments of post by non existing post id', async () => {
+			await expect(
+				postsService.findAllCommentsOfPost(idCreator(), {
+					pageNumber: '1',
+					pageSize: '2',
+					totalCount: '',
+					sortBy: null,
+					sortDirection: null,
+				}),
+			).rejects.toThrow(POST_NOT_FOUND);
+		});
 
-		/*it('post test find comments of post but comments not found', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('post test find comments of post but comments not found', async () => {
+			const result = await postsService.findAllCommentsOfPost(idPost2, {
+				pageNumber: '1',
+				pageSize: '10',
+				totalCount: '',
+				sortBy: null,
+				sortDirection: null,
+			});
+			expect(result).toEqual({
+				pagesCount: 0,
+				page: 1,
+				pageSize: 10,
+				totalCount: 0,
+				items: [],
+			});
+		});
 	});
 
 	describe('findPostById', () => {
@@ -259,14 +270,9 @@ describe('Integration test for posts-service', () => {
 			expect(result).toEqual(postResultCreator(titlePost));
 		});
 
-		/*it('post test find post by non existing id', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('post test find post by non existing id', async () => {
+			await expect(postsService.findPostById(idCreator())).rejects.toThrow(POST_NOT_FOUND);
+		});
 	});
 
 	describe('deletePost', () => {
@@ -283,11 +289,11 @@ describe('Integration test for posts-service', () => {
 		/*it('find post after deleting', async () => {
 			const result = await PostModel.findOne({ _id: idPost });
 			expect(result).toBeNull();
-		});
+		})*/
+
 		it('delete non exists post', async () => {
-			const result = await PostModel.findOne({ _id: idPost });
-			expect(result).toBeNull();
-		});*/
+			await expect(postsService.deletePost(idCreator())).rejects.toThrow(POST_NOT_FOUND);
+		});
 	});
 
 	describe('updatePost', () => {
@@ -318,23 +324,27 @@ describe('Integration test for posts-service', () => {
 			});
 		});
 
-		/*it('post test update post by non existing id', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('post test update post by non existing id', async () => {
+			await expect(
+				postsService.updatePost(idCreator(), {
+					title: 'updatedTitle',
+					shortDescription: 'updatedShortDescription',
+					content: 'updatedContent',
+					blogId: idBlog.toString(),
+				}),
+			).rejects.toThrow(POST_NOT_FOUND);
+		});
 
-		/*it('post test update post by non existing blog', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('post test update post by non existing blog', async () => {
+			await expect(
+				postsService.updatePost(idCreator(), {
+					title: 'updatedTitle',
+					shortDescription: 'updatedShortDescription',
+					content: 'updatedContent',
+					blogId: idCreator().toString(),
+				}),
+			).rejects.toThrow(BLOG_NOT_FOUND);
+		});
 	});
 
 	describe('createPost', () => {
@@ -364,14 +374,11 @@ describe('Integration test for posts-service', () => {
 			expect(postModel).not.toBeNull();
 		});
 
-		/*it('post test create post by non existing blog', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('post test create post by non existing blog', async () => {
+			await expect(
+				postsService.createPost(titlePost, shortDescriptionPost, contentPost, idCreator()),
+			).rejects.toThrow(BLOG_NOT_FOUND);
+		});
 	});
 
 	describe('createCommentPost', () => {
@@ -391,6 +398,16 @@ describe('Integration test for posts-service', () => {
 
 			const commentsModel: CommentsTypeDb | null = await CommentModel.findById({ _id: result.id });
 			expect(commentsModel).not.toBeNull();
+		});
+
+		it('post test create new comment by non existing post', async () => {
+			await expect(
+				postsService.createCommentPost(
+					contentPost,
+					userCreator2(loginUser, emailUser, idUser),
+					new ObjectId(idCreator()),
+				),
+			).rejects.toThrow(POST_NOT_FOUND);
 		});
 	});
 });

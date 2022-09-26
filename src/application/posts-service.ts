@@ -94,6 +94,9 @@ export class PostsService {
 		const blog: BlogsTypeDb | null = await this.blogsRepository.findBlogById(blogIdObjectId);
 		if (!blog) throw new NotFoundError(BLOG_NOT_FOUND);
 
+		const post: PostsType = await this.findPostById(id);
+		if (!post) throw new NotFoundError(POST_NOT_FOUND);
+
 		const result = await this.postsRepository.updatePost(id, {
 			id,
 			title,

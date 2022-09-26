@@ -1,11 +1,17 @@
 import { container } from '../psevdoIoc';
 import mongoose from 'mongoose';
-import {BlogModel, CommentModel, LikeModel, PostModel, RefreshTokenModel, RemoteUserIpModel, UserModel} from '../db/db';
+import {
+	BlogModel,
+	CommentModel,
+	LikeModel,
+	PostModel,
+	RefreshTokenModel,
+	RemoteUserIpModel,
+	UserModel,
+} from '../db/db';
 import { idCreator } from '../helpers/idCreator';
 import { connectMemoryDb, disconnectMemoryDb } from '../db/memoryDb';
-import { RemoteUserIpService } from './remote-user-ip-service';
-import { RemoteUserIpType } from '../types/remoteUserIpType';
-import {TestingService} from "./testing-service";
+import { TestingService } from './testing-service';
 
 describe('Integration test for testing-service', () => {
 	beforeAll(connectMemoryDb);

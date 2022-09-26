@@ -4,12 +4,14 @@ import { CommentModel, PostModel, UserModel } from '../db/db';
 import { idCreator } from '../helpers/idCreator';
 import add from 'date-fns/add';
 import { ObjectId } from 'mongodb';
-import { USER_NOT_FOUND } from '../errors/errorsMessages';
-import { NotFoundError } from '../errors/notFoundError';
-import { HttpStatusCode } from '../types/StatusCode';
 import { connectMemoryDb, disconnectMemoryDb } from '../db/memoryDb';
 import { PostsService } from './posts-service';
 import { CommentsService } from './comments-service';
+import {
+	COMMENT_FORBIDDEN_DELETE,
+	COMMENT_FORBIDDEN_EDIT,
+	COMMENT_NOT_FOUND,
+} from '../errors/errorsMessages';
 
 describe('Integration test for comments-service', () => {
 	beforeAll(connectMemoryDb);
@@ -156,7 +158,7 @@ describe('Integration test for comments-service', () => {
 			});
 		});
 
-		/*it('comments test find comments of post by non existing post id', async () => {
+		/*it('comments test find comments of post by non-existing post id', async () => {
 			expect.assertions(1);
 			try {
 				await await postsService.findPostById(idCreator());
@@ -186,14 +188,9 @@ describe('Integration test for comments-service', () => {
 			expect(result).toEqual(postCommentsResultCreator(contentPost));
 		});
 
-		/*it('comments test find comment by non existing id', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('comments test find comment by non existing id', async () => {
+			await expect(commentsService.findCommentById(idCreator())).rejects.toThrow(COMMENT_NOT_FOUND);
+		});
 	});
 
 	describe('deleteComment', () => {
@@ -201,6 +198,15 @@ describe('Integration test for comments-service', () => {
 			await mongoose.connection.db.dropDatabase();
 			await UserModel.create(userCreator(loginUser, emailUser, 1, idUser));
 			await CommentModel.create(commentCreator(idPost, contentPost, 1, idComment));
+		});
+
+		it('comments test delete alien comment', async () => {
+			await expect(
+				commentsService.deleteComment(
+					idComment,
+					userCreator2('alienLogin', 'alienLogin@email.ru', idCreator()),
+				),
+			).rejects.toThrow(COMMENT_FORBIDDEN_DELETE);
 		});
 
 		it('comments test delete comment by id', async () => {
@@ -214,17 +220,13 @@ describe('Integration test for comments-service', () => {
 		/*it('find comment after deleting', async () => {
 			const result = await PostModel.findOne({ _id: idPost });
 			expect(result).toBeNull();
-		});
-
-		it('delete non exists comment', async () => {
-			const result = await PostModel.findOne({ _id: idPost });
-			expect(result).toBeNull();
-		});
-
-		it('delete alien comment', async () => {
-			const result = await PostModel.findOne({ _id: idPost });
-			expect(result).toBeNull();
 		});*/
+
+		it('comments test delete non exists comment', async () => {
+			await expect(
+				commentsService.deleteComment(idCreator(), userCreator2(loginUser, emailUser, idUser)),
+			).rejects.toThrow(COMMENT_NOT_FOUND);
+		});
 	});
 
 	describe('updateComment', () => {
@@ -246,18 +248,24 @@ describe('Integration test for comments-service', () => {
 			expect(comment).toEqual(postCommentsResultCreator('new Content'));
 		});
 
-		/*it('comments test update post by non existing id', async () => {
-			expect.assertions(1);
-			try {
-				await await postsService.findPostById(idCreator());
-			} catch (e: unknown) {
-				expect(e).toBe(new NotFoundError(POST_NOT_FOUND).name);
-			}
-		});*/
+		it('comments test update post by non existing id', async () => {
+			await expect(
+				commentsService.updateComment(
+					idCreator(),
+					'new Content',
+					userCreator2(loginUser, emailUser, idUser),
+				),
+			).rejects.toThrow(COMMENT_NOT_FOUND);
+		});
 
-		/*it('delete alien comment', async () => {
-			const result = await PostModel.findOne({ _id: idPost });
-			expect(result).toBeNull();
-		})*/
+		it('comments test update alien comment', async () => {
+			await expect(
+				commentsService.updateComment(
+					idComment,
+					'new Content',
+					userCreator2('alienLogin', 'alienLogin@email.ru', idCreator()),
+				),
+			).rejects.toThrow(COMMENT_FORBIDDEN_EDIT);
+		});
 	});
 });
