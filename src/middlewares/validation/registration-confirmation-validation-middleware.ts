@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { UsersTypeDb } from '../../types/usersType';
+import { UsersType } from '../../types/usersType';
 import { UsersService } from '../../application/users-service';
 import { container } from '../../psevdoIoc';
 
@@ -13,7 +13,7 @@ export const registrationConfirmationValidationMiddleware = [
 		.isString()
 		.withMessage('must to be string')
 		.custom(async (value) => {
-			const user: UsersTypeDb = await usersService.findUserByConfirmationCode(value);
+			const user: UsersType = await usersService.findUserByConfirmationCode(value);
 			//if (!user) throw new Error('user not found');
 			if (user.emailConfirmation.isConfirmed) throw new Error('already confirmed');
 			if (user.emailConfirmation.expirationDate < new Date())

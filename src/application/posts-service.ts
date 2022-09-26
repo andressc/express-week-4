@@ -183,7 +183,7 @@ export class PostsService {
 		if (!createdId) throw new Error(ERROR_DB);
 
 		return {
-			id: createdId,
+			id: new ObjectId(createdId),
 			content,
 			userId: user._id,
 			userLogin: user.accountData.login,

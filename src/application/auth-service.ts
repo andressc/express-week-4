@@ -33,8 +33,8 @@ export class AuthService {
 	private async createTokens(
 		user: UsersTypeDb,
 	): Promise<{ refreshToken: string; accessToken: string }> {
-		const refreshToken = await this.jwtService.createJWT(user, '20m');
-		const accessToken = await this.jwtService.createJWT(user, '10m');
+		const refreshToken = await this.jwtService.createJWT(user, '20s');
+		const accessToken = await this.jwtService.createJWT(user, '10s');
 
 		return { refreshToken, accessToken };
 	}

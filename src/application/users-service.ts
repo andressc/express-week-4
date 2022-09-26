@@ -61,8 +61,25 @@ export class UsersService {
 		const user: UsersTypeDb | null = await this.usersRepository.findUserById(id);
 		if (!user) throw new NotFoundError(USER_NOT_FOUND);
 
-		const { _id, emailConfirmation, accountData, createdAt } = user;
-		return { id: _id, emailConfirmation, accountData, createdAt };
+		return this.userMap(user);
+	}
+
+	async findUserByEmail(email: string): Promise<UsersType | null> {
+		const user = await this.usersRepository.findUserByEmail(email);
+		if (!user) return null;
+		return this.userMap(user);
+	}
+
+	async findUserByLogin(login: string): Promise<UsersType | null> {
+		const user = await this.usersRepository.findUserByLogin(login);
+		if (!user) return null;
+		return this.userMap(user);
+	}
+
+	async findUserByConfirmationCode(code: string): Promise<UsersType> {
+		const user: UsersTypeDb | null = await this.usersRepository.findUserByConfirmationCode(code);
+		if (!user) throw new NotFoundError(USER_NOT_FOUND);
+		return this.userMap(user);
 	}
 
 	async createUser(
@@ -96,17 +113,8 @@ export class UsersService {
 		if (!result) throw new NotFoundError(USER_NOT_FOUND);
 	}
 
-	async findUserByEmail(email: string): Promise<UsersTypeDb | null> {
-		return await this.usersRepository.findUserByEmail(email);
-	}
-
-	async findUserByConfirmationCode(code: string): Promise<UsersTypeDb> {
-		const user: UsersTypeDb | null = await this.usersRepository.findUserByConfirmationCode(code);
-		if (!user) throw new NotFoundError(USER_NOT_FOUND);
-		return user;
-	}
-
-	async findUserByLogin(code: string): Promise<UsersTypeDb | null> {
-		return this.usersRepository.findUserByLogin(code);
+	private userMap(item: UsersTypeDb): UsersType {
+		const { _id, emailConfirmation, accountData, createdAt } = item;
+		return { id: _id, emailConfirmation, accountData, createdAt };
 	}
 }

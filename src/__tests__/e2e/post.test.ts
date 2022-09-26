@@ -7,16 +7,9 @@ import { connectMemoryDb, disconnectMemoryDb } from '../../db/memoryDb';
 import { PostsType } from '../../types/postsType';
 import { idCreator } from '../../helpers/idCreator';
 import add from 'date-fns/add';
+import { sleep } from '../../helpers/sleep';
 
 jest.setTimeout(30 * 1000);
-
-const sleep = (milliseconds: number) => {
-	const date = Date.now();
-	let currentDate = null;
-	do {
-		currentDate = Date.now();
-	} while (currentDate - date < milliseconds);
-};
 
 describe('/posts', () => {
 	beforeAll(connectMemoryDb);
@@ -430,7 +423,7 @@ describe('/posts', () => {
 		});
 	});
 
-	describe('should return all posts for blogger and sorting', () => {
+	describe('should return all posts for blog and sorting', () => {
 		const blogId = idCreator();
 		const blogId2 = idCreator();
 
@@ -500,7 +493,7 @@ describe('/posts', () => {
 			]);
 		});
 
-		it('should return all posts for blogger', async () => {
+		it('should return all posts for blog', async () => {
 			const response = await request(app).get(`/blogs/${blogId}/posts`).expect(HttpStatusCode.OK);
 
 			expect(response.body).toEqual({
@@ -540,7 +533,7 @@ describe('/posts', () => {
 			});
 		});
 
-		it('sorting and pages posts for blogger', async () => {
+		it('sorting and pages posts for blog', async () => {
 			const response = await request(app)
 				.get(`/blogs/${blogId}/posts?sortBy=title&pageSize=2&sortDirection=asc`)
 				.expect(HttpStatusCode.OK);
