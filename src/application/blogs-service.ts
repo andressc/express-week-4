@@ -99,6 +99,6 @@ export class BlogsService {
 
 	private blogMap(item: BlogsTypeDb): BlogsType {
 		const { _id, name, youtubeUrl, createdAt } = item;
-		return { id: _id, name, youtubeUrl, createdAt };
+		return { id: _id, name, youtubeUrl: "fdd", createdAt };
 	}
 }
