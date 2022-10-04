@@ -118,3 +118,4 @@ export class UsersService {
 		return { id: _id, emailConfirmation, accountData, createdAt };
 	}
 }
+

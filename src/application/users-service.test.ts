@@ -124,47 +124,69 @@ describe('Integration test for users-service', () => {
 			});
 		});
 
-		/*
-		it('user test select all users and search login', async () => {
+
+		it('user test select users and search login', async () => {
 			const result = await usersService.findAllUsers({
 				pageNumber: '1',
-				pageSize: '2',
+				pageSize: '10',
 				totalCount: '',
-				sortBy: 'login',
-				sortDirection: 'asc',
+				sortBy: null,
+				sortDirection: null,
+				searchLoginTerm: 'cLogin'
 			});
 			expect(result).toEqual({
-				pagesCount: 2,
+				pagesCount: 1,
 				page: 1,
-				pageSize: 2,
-				totalCount: 3,
+				pageSize: 10,
+				totalCount: 1,
 				items: [
-					userResultCreator('aLogin', 'aemail@email.ru'),
-					userResultCreator('bLogin', 'bemail@email.ru'),
+					userResultCreator('cLogin', 'cemail@email.ru'),
 				],
 			});
 		});
 
-		it('user test select all users and search email', async () => {
+		it('user test select users and search email', async () => {
 			const result = await usersService.findAllUsers({
 				pageNumber: '1',
-				pageSize: '2',
+				pageSize: '10',
 				totalCount: '',
-				sortBy: 'login',
-				sortDirection: 'asc',
+				sortBy: null,
+				sortDirection: null,
+				searchEmailTerm: 'cemail@email.ru'
 			});
 			expect(result).toEqual({
-				pagesCount: 2,
+				pagesCount: 1,
 				page: 1,
-				pageSize: 2,
-				totalCount: 3,
+				pageSize: 10,
+				totalCount: 1,
 				items: [
-					userResultCreator('aLogin', 'aemail@email.ru'),
-					userResultCreator('bLogin', 'bemail@email.ru'),
+					userResultCreator('cLogin', 'cemail@email.ru'),
 				],
 			});
 		});
-		 */
+
+
+		it('user test select users and search email or login', async () => {
+			const result = await usersService.findAllUsers({
+				pageNumber: '1',
+				pageSize: '10',
+				totalCount: '',
+				sortBy: null,
+				sortDirection: null,
+				searchLoginTerm: 'bLogin',
+				searchEmailTerm: 'cemail@email.ru'
+			});
+			expect(result).toEqual({
+				pagesCount: 1,
+				page: 1,
+				pageSize: 10,
+				totalCount: 2,
+				items: [
+					userResultCreator('bLogin', 'bemail@email.ru'),
+					userResultCreator('cLogin', 'cemail@email.ru'),
+				],
+			});
+		});
 	});
 
 	describe('findUserById', () => {
@@ -256,6 +278,20 @@ describe('Integration test for users-service', () => {
 
 			expect(userModel).not.toBeNull();
 		});
+
+		/*it('user test user already exists', async () => {
+			const result = await usersService.createUser(loginUser, emailUser, passwordUser);
+			expect(result).toEqual({
+				id: expect.any(String),
+				login: loginUser,
+				email: emailUser,
+				createdAt: expect.any(String),
+			});
+
+			const userModel: UsersTypeDb | null = await UserModel.findById({ _id: result.id });
+
+			expect(userModel).not.toBeNull();
+		});*/
 	});
 
 	describe('deleteUser', () => {

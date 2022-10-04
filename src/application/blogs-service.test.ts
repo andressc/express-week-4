@@ -114,22 +114,23 @@ describe('Integration test for blogs-service', () => {
 			});
 		});
 
-		/*it('blog test select all blogs and search name', async () => {
-			const result = await postsService.findAllPosts({
+		it('blog test select blogs and search name', async () => {
+			const result = await blogsService.findAllBlogs({
 				pageNumber: '1',
-				pageSize: '2',
+				pageSize: '10',
 				totalCount: '',
-				sortBy: 'name',
-				sortDirection: 'asc',
+				sortBy: null,
+				sortDirection: null,
+				searchNameTerm: "bName"
 			});
 			expect(result).toEqual({
-				pagesCount: 2,
+				pagesCount: 1,
 				page: 1,
-				pageSize: 2,
-				totalCount: 3,
-				items: [blogResultCreator('aName'), blogResultCreator('bName')],
+				pageSize: 10,
+				totalCount: 1,
+				items: [blogResultCreator('bName')],
 			});
-		});*/
+		});
 	});
 
 	describe('findAllPostsBlog', () => {

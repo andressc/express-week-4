@@ -22,6 +22,7 @@ export class UsersRepository {
 		if (sortB == 'id') nameSort = '_id';
 		const sortBy: {} = { [nameSort]: sortDirection };
 
+
 		return UserModel.find(searchString).sort(sortBy).skip(skip).limit(pageSize).lean();
 	}
 
@@ -91,8 +92,8 @@ export class UsersRepository {
 	private searchTerm = (login: string | undefined, email: string | undefined): {} => {
 		let searchString = {};
 
-		const searchLoginTerm = login ? { login: { $regex: login, $options: 'i' } } : null;
-		const searchEmailTerm = email ? { email: { $regex: email, $options: 'i' } } : null;
+		const searchLoginTerm = login ? { "accountData.login": { $regex: login, $options: 'i' } } : null;
+		const searchEmailTerm = email ? { "accountData.email": { $regex: email, $options: 'i' } } : null;
 
 		if (searchLoginTerm) searchString = searchLoginTerm;
 		if (searchEmailTerm) searchString = searchEmailTerm;
